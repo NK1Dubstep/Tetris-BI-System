@@ -5,4 +5,4 @@ SPb HSE Computer Games Programming &amp; Engineering, 1st course 2025/26 Project
 
 **Assignee**: Ilya Pshenichniy
 
-**Contributors**: Artem Vysotin, Nikita Koptelov
+**Authors**: Artem Vysotin, Nikita Koptelov
