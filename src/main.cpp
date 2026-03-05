@@ -1,6 +1,8 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 
 #define MINIFB_IMPLEMENTATION
 #include "MiniFB_cpp.h"
@@ -16,36 +18,31 @@ int main() {
   mfb_set_target_fps(1000);
 
   static std::array<std::array<uint32_t, W>, H> buffer;
+  std::fill(buffer[0].data(), buffer[0].data() + W * H, 0x4d8318);
+  mfb_update_ex(window, buffer.data(), W, H);
 
-  auto put_pixel = [&](int x, int y, uint32_t c) {
-      if (x < 0 || y < 0 || x >= W || y >= H) {
-        return;
-      }
-      buffer[y][x] = c;
-    };
+  mfb_timer *timer = mfb_timer_create();
+  mfb_timer_reset(timer);
 
-  auto put_rect = [&](int lbx, int lby, int size, uint32_t c) {
-      for (int y = lby; y < lby + size; y++) {
-        for (int x = lbx; x < lbx + size; x++) {
-          put_pixel(x, y, c);
-        }
-      }
-    };
+  double delta_time = mfb_timer_delta(timer);
+  double time_since_fps_update = 0;
+  int frame_count = 0;
 
-  mfb_update_state state;
   do {
-    int x = rand() % W;
-    int y = rand() % H;
+    delta_time = mfb_timer_delta(timer);
+    time_since_fps_update += delta_time;
+    frame_count++;
 
-    put_rect(x, y, 50, 0x834d18);
-    state = mfb_update_ex(window, buffer.data(), W, H);
-    put_rect(x, y, 50, 0);
+    mfb_update_ex(window, buffer[0].data(), W, H);
 
-    if (state != STATE_OK)
-      break;
-
+    if (time_since_fps_update > 1) {
+      std::cout << frame_count << "FPS," << 1 / delta_time << "instantFPS\r";
+      time_since_fps_update = 0;
+      frame_count = 0;
+    }
   } while(mfb_wait_sync(window));
 
+  mfb_timer_destroy(timer);
   mfb_close(window);
 
   return 0;

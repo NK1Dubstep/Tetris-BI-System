@@ -9,7 +9,168 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
-      "ctestCommandArgs": ""
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "NK1AV1_ENABLE_THREAD_SANITIZER",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_USE_OPENGL_API",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_VERSION_INFO",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_EXAMPLES",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_AVOID_CPP_HEADERS",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Debug",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Release",
+          "type": "STRING"
+        },
+        {
+          "name": "MINIFB_AVOID_CPP_HEADERS",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_EXAMPLES",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_VERSION_INFO",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_USE_OPENGL_API",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "NK1AV1_ENABLE_THREAD_SANITIZER",
+          "value": "false",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x86-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Debug",
+          "type": "STRING"
+        },
+        {
+          "name": "MINIFB_AVOID_CPP_HEADERS",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_EXAMPLES",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_VERSION_INFO",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_USE_OPENGL_API",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "NK1AV1_ENABLE_THREAD_SANITIZER",
+          "value": "false",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x86-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Debug",
+          "type": "STRING"
+        },
+        {
+          "name": "MINIFB_AVOID_CPP_HEADERS",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_EXAMPLES",
+          "value": "false",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_BUILD_VERSION_INFO",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "MINIFB_USE_OPENGL_API",
+          "value": "true",
+          "type": "BOOL"
+        },
+        {
+          "name": "NK1AV1_ENABLE_THREAD_SANITIZER",
+          "value": "false",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }
