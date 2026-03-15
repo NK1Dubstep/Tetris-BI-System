@@ -9,6 +9,8 @@ set(TARGET_NAME "Tetris")
 set(SOURCES
   src/main.cpp
   src/render/render.cpp
+  src/window/window.cpp
+  src/window/tetris_window/tetris_window.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")

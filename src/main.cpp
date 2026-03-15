@@ -7,9 +7,13 @@
 #define MINIFB_IMPLEMENTATION
 #include "MiniFB_cpp.h"
 
+#include "window/tetris_window/tetris_window.hpp"
 #include "render/render.hpp"
 
 int main() {
+  tetris_bi::tetris_window tw;
+  tw.run();
+#if 0
   constexpr uint32_t W = 800;
   constexpr uint32_t H = 600;
 
@@ -57,4 +61,5 @@ int main() {
   mfb_close(window);
 
   return 0;
+#endif
 }
