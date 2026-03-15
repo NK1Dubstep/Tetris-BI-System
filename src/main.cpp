@@ -7,9 +7,22 @@
 #define MINIFB_IMPLEMENTATION
 #include "MiniFB_cpp.h"
 
+#include "render/render.hpp"
+
 int main() {
   constexpr uint32_t W = 800;
   constexpr uint32_t H = 600;
+
+  render rnd(W, H);
+
+  std::vector<std::vector<uint32_t>> field(10, std::vector<uint32_t>(30));
+
+  field[4][4] = 1;
+  field[5][4] = 1;
+  field[4][5] = 1;
+  field[4][3] = 1;
+
+  rnd.render_tetris(field);
 
   mfb_window *window = mfb_open_ex("Nk1 + av1 Super tertis", W, H, WF_RESIZABLE);
   if (!window) {
@@ -17,9 +30,7 @@ int main() {
   }
   mfb_set_target_fps(1000);
 
-  static std::array<std::array<uint32_t, W>, H> buffer;
-  std::fill(buffer[0].data(), buffer[0].data() + W * H, 0x4d8318);
-  mfb_update_ex(window, buffer.data(), W, H);
+  mfb_update_ex(window, rnd.get_buffer().data(), W, H);
 
   mfb_timer *timer = mfb_timer_create();
   mfb_timer_reset(timer);
@@ -33,7 +44,7 @@ int main() {
     time_since_fps_update += delta_time;
     frame_count++;
 
-    mfb_update_ex(window, buffer[0].data(), W, H);
+    mfb_update_ex(window, rnd.get_buffer().data(), W, H);
 
     if (time_since_fps_update > 1) {
       std::cout << frame_count << "FPS," << 1 / delta_time << "instantFPS\r";
