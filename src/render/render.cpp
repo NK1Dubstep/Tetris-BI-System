@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include "./tetris/tetris.hpp"
 #include "render.hpp"
 
 std::vector<uint32_t>& render::get_buffer() {
@@ -37,21 +38,41 @@ void render::resize(const uint32_t W, const uint32_t H) {
   m_buffer.resize(W * H, 0);
 }
 
-void render::render_tetris(const std::vector<std::vector<uint32_t>>& tetris_field) {
+[[nodiscard]] uint32_t render::get_color(int val) const {
+  switch (val) {
+  case 0:
+    return 0;
+  case 1:
+    return 0xfa0000; // red
+  case 2:
+    return 0xfae100; // yellow
+  case 3:
+    return 0x45ad03; // green
+  case 4:
+    return 0x0303ad; // blue
+  case 5:
+    return 0x9603ad; // purple
+  case 6:
+    return 0x03a2ad; // cyan
+  default:
+    return 0xe864a6;
+  }
+}
+
+void render::render_tetris(const tetris_field& field) {
   std::fill(m_buffer.data(), m_buffer.data() + m_W * m_H, 0);
 
-  
-  uint32_t cell_size = 10;
+  uint32_t cell_size = 20;
 
-  uint32_t field_w = tetris_field.size();
-  uint32_t field_h = tetris_field[0].size();
+  uint32_t field_w = field.get_width();
+  uint32_t field_h = field.get_height();
 
   uint32_t offsetX = (m_W - field_w * cell_size) / 2;
   uint32_t offsetY = (m_H - field_h * cell_size) / 2;
 
   for (uint32_t y = 0; y < field_h; y++) {
     for (uint32_t x = 0; x < field_w; x++) {
-      uint32_t color = 250 * tetris_field[x][y];
+      uint32_t color = get_color(field.get_cell(x, y));
       uint32_t cx = offsetX + x * cell_size;
       uint32_t cy = offsetY + y * cell_size;
       draw_square(cx, cy, cell_size, color);

@@ -12,6 +12,9 @@
 
 int main() {
   tetris_bi::tetris_window tw;
+  time_t aboba;
+  time(&aboba);
+  std::srand(aboba);
   tw.run();
 #if 0
   constexpr uint32_t W = 800;

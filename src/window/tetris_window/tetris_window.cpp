@@ -5,8 +5,13 @@
 
 #include "tetris_window.hpp"
 
+#include "./tetris/tetris.hpp"
+
 #include <iostream>
 #include <format>
+
+#include <chrono>
+#include <thread>
 
 namespace tetris_bi {
 
@@ -14,7 +19,7 @@ namespace tetris_bi {
     window("Nk1 av1 super tertis", 800, 800),
     render(800, 800)
   {
-    render::draw_rectangle(0, 0, 100, 100, 0x834d18);
+    // render::draw_rectangle(0, 0, 100, 100, 0x834d18);
     mfb_update_ex(win, render::get_buffer().data(), width, height);
   }
 
@@ -88,6 +93,11 @@ namespace tetris_bi {
   }
 
   void tetris_window::my_frame() {
+    static tetris_game tetris{};
+    tetris.update();
+    render_tetris(tetris.get_tetris_field());
+    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
 }

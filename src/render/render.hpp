@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vector>
+#include "tetris/tetris.hpp"
 
 class render {
 public:
@@ -21,7 +22,8 @@ public:
 
   void resize(const uint32_t W, const uint32_t H);
 
-  void render_tetris(const std::vector<std::vector<uint32_t>>& tetris_field);
+  [[nodiscard]] uint32_t get_color(int value) const;
+  void render_tetris(const tetris_field& field);
 private:
   uint32_t m_W;
   uint32_t m_H;

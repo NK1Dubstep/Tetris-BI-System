@@ -11,6 +11,7 @@ set(SOURCES
   src/render/render.cpp
   src/window/window.cpp
   src/window/tetris_window/tetris_window.cpp
+  src/tetris/tetris.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")
