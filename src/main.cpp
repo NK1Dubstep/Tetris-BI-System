@@ -9,12 +9,15 @@
 
 #include "window/tetris_window/tetris_window.hpp"
 #include "render/render.hpp"
+#include "tetris/tetris.hpp"
 
 int main() {
+  tetris_bi::tetris_game game;
   tetris_bi::tetris_window tw;
   time_t aboba;
   time(&aboba);
   std::srand(aboba);
+  tw.link_tetris(game);
   tw.run();
 #if 0
   constexpr uint32_t W = 800;

@@ -64,6 +64,18 @@ namespace tetris_bi {
     [[maybe_unused]] uint32_t char_code
   ) {
     std::cout << std::format("(MiniFB callback called, my_char_input) char: {}\n", static_cast<char>(char_code));
+
+    if (char_code == 'a') {
+      m_tetris->move_direction(-1);
+    } else if (char_code == 'd') {
+      m_tetris->move_direction(1);
+    } else if (char_code == 's') {
+      m_tetris->rotateCW();
+    } else if (char_code == 'w') {
+      m_tetris->rotateCCW();
+    } else {
+      return;
+    }
   }
 
   void tetris_window::my_mouse_button(
@@ -93,11 +105,10 @@ namespace tetris_bi {
   }
 
   void tetris_window::my_frame() {
-    static tetris_game tetris{};
-    tetris.update();
-    render_tetris(tetris.get_tetris_field());
+    m_tetris->update();
+    render_tetris(m_tetris->get_tetris_field());
     mfb_update_ex(win, render::get_buffer().data(), width, height);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
 }

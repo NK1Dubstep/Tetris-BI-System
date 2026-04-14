@@ -7,13 +7,16 @@
 
 #include "window/window.hpp"
 #include "render/render.hpp"
+#include "tetris/tetris.hpp"
 
 namespace tetris_bi {
   class tetris_window : public window, public render {
   public:
     tetris_window();
 
-    void link_tetris() {}  // TODO
+    void link_tetris(tetris_game& game) {
+      m_tetris = &game;
+    }
 
   private:
     void my_active(mfb_window *, bool is_active) override;
@@ -26,5 +29,7 @@ namespace tetris_bi {
     void my_mouse_scroll(mfb_window *, mfb_key_mod mod, float dx, float dy) override;
 
     void my_frame() override;
+
+    tetris_game* m_tetris = nullptr;
   };
 }
