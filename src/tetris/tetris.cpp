@@ -6,17 +6,15 @@
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
-#include <immintrin.h>
 
+#include "utils/random.hpp"
 #include "tetris.hpp"
 
 namespace tetris_bi {
   tetris_game::tetris_game() {
     generate_shapes_data();
     generate_new_figure(m_current_figure);
-    for (auto& p : m_current_figure.points) {
-      m_tetris_field.change_cell(p.x, p.y, p.val);
-    }
+    commit_current_figure();
     generate_new_figure(m_next_figure);
   }
 
@@ -60,7 +58,7 @@ namespace tetris_bi {
   }
 
   void tetris_game::move_direction(int dir) {
-    if (!check_direction(dir)) return;
+    if (is_game_over || !check_direction(dir)) return;
 
     for (auto& p : m_current_figure.points) {
       m_tetris_field.change_cell(p.x, p.y, 0);
@@ -91,7 +89,7 @@ namespace tetris_bi {
 
   void tetris_game::rotateCW() {
     if (m_current_figure.type == shape_type::O) return;
-    if (!check_rotateCW()) return;
+    if (is_game_over || !check_rotateCW()) return;
 
     point rotate_point = m_current_figure.points[1];
 
@@ -129,7 +127,7 @@ namespace tetris_bi {
 
   void tetris_game::rotateCCW() {
     if (m_current_figure.type == shape_type::O) return;
-    if (!check_rotateCCW()) return;
+    if (is_game_over || !check_rotateCCW()) return;
 
     point rotate_point = m_current_figure.points[1];
 
@@ -147,28 +145,50 @@ namespace tetris_bi {
     }
   }
 
-  void tetris_game::generate_new_figure(tetris_figure& figure) {
-    auto f = []() {
-      uint32_t rd;
-      while (!_rdrand32_step(&rd)) ;
-      return rd;
-    };
+  void tetris_game::commit_current_figure() {
+    for (const auto& p : m_current_figure.points) {
+      m_tetris_field.change_cell(p.x, p.y, p.val);
+    }
+  }
 
-    int figure_id = f() % 7;
+  void tetris_game::generate_new_figure(tetris_figure& figure) {
+    int figure_id = generate_randui32() % 7;
     figure.points = m_shapes_presets[figure_id];
     figure.type = m_shapes_types_presets[figure_id];
-    int random_val = f() % 8 + 1;
+    int random_val = generate_randui32() % 8 + 1;
     for (auto& p : figure.points) {
       p.val = random_val;
     }
   }
 
+  bool tetris_game::check_for_win() const {
+    if (m_figure_passed_lvl > m_figure_to_win) {
+      return true;
+    }
+    return false;
+  }
+
+  bool tetris_game::check_for_lose() const {
+    for (const auto& p : m_current_figure.points) {
+      if (p.y < m_lose_line) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void tetris_game::go_next_level() {
+    m_level_number++;
+    m_figure_to_win++;
+    m_figure_passed_lvl = 0;
+    if (m_level_number % 2 == 0) {
+      m_lose_line = std::min(m_lose_line + 1, m_tetris_field.get_height() - 5);
+    }
+    m_tetris_field.reset();
+  }
+
   void tetris_game::tick() {
     if (is_game_over) return;
-
-    // int rand_dir = rand() % 2 * 2 - 1;
-    // move_direction(rand_dir);
-    // rotateCCW();
 
     if (check_down()) {
       move_down();
@@ -177,16 +197,33 @@ namespace tetris_bi {
       int cleared = m_tetris_field.clear_lines();
       m_score += cleared * cleared;
       m_total_lines += cleared;
-      m_figure_passed++;
+      m_figure_passed++, m_figure_passed_lvl++;
       std::cout << "succeessfuly clear " << cleared << " lines!!!\n";
+
+      if (check_for_win()) {
+        std::cout << "You win!!!\n";
+        go_next_level();
+        generate_new_figure(m_current_figure);
+        commit_current_figure();
+        generate_new_figure(m_next_figure);
+        return;
+      }
+      
+      if (check_for_lose()) {
+        std::cout << "you lose:(\n";
+        is_game_over = true;
+        return;
+      }
+      
       m_current_figure = std::move(m_next_figure);
+      commit_current_figure();
       generate_new_figure(m_next_figure);
       return;
     }
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.1;
+    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.2;
 
     if (st == state::SESSION) {
       from_last_tick += delta_time;

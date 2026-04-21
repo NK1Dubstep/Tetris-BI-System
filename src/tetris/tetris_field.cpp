@@ -62,4 +62,12 @@ namespace tetris_bi {
     }
     return cleared;
   }
+
+  void tetris_field::reset() {
+    for (int x = 0; x < m_field_width; x++) {
+      for (int y = 0; y < m_field_height; y++) {
+        m_tetris_field_[x][y] = 0;
+      }
+    }
+  }
 }

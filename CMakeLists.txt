@@ -11,9 +11,11 @@ set(SOURCES
   src/render/render.cpp
   src/window/window.cpp
   src/window/tetris_window/tetris_window.cpp
+  src/window/super_tetris_window/super_tetris_window.cpp
   src/tetris/tetris.cpp
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
+  src/tetris/bot/bot.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")

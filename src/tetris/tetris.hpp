@@ -25,6 +25,8 @@ namespace tetris_bi {
 
     int clear_lines();
 
+    void reset();
+
   private:
 
     void remove_line(const int row);
@@ -96,7 +98,19 @@ namespace tetris_bi {
     [[nodiscard]] bool check_rotateCW() const;
     [[nodiscard]] bool check_rotateCCW() const;
 
+    void commit_current_figure();
     void generate_new_figure(tetris_figure& shape);
+
+    /* game_state_checkers/switchers */
+    bool check_for_win() const;
+    bool check_for_lose() const;
+
+    void go_next_level();
+
+    int m_figure_to_win = 500;
+    uint32_t m_level_number = 1;
+    uint32_t m_lose_line = 2;
+    int m_figure_passed_lvl = 0;
 
     std::vector<tetris_shape> m_shapes_presets;
     std::vector<shape_type> m_shapes_types_presets;
