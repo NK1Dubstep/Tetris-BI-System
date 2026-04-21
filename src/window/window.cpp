@@ -15,7 +15,7 @@ namespace tetris_bi {
     if (win == nullptr) {
       throw std::runtime_error("Window creation FAIL");
     }
-
+    // mfb_set_target_fps(1000);
     mfb_set_active_callback(win, this, &window::my_active);
     mfb_set_resize_callback(win, this, &window::my_resize);
     mfb_set_close_callback(win, this, &window::my_close);

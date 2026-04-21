@@ -67,6 +67,7 @@ namespace tetris_bi {
         pause_total += delta_time;
         pause_from_last += delta_time;
         time += delta_time;
+        delta_time_p = 0;
         tp_frame = tp_now;
         frame_count++;
         return;
@@ -101,4 +102,5 @@ namespace tetris_bi {
     void reset() {
       *this = timer();
     }
-  };}
+  };
+}

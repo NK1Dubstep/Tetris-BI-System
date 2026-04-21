@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <thread>
 
 #define MINIFB_IMPLEMENTATION
 #include "MiniFB_cpp.h"
@@ -10,62 +11,66 @@
 #include "window/tetris_window/tetris_window.hpp"
 #include "render/render.hpp"
 #include "tetris/tetris.hpp"
+#include "utils/timer.hpp"
+
+/* 
+  
+    В итоге я пришел к тому, что лучшая модель - это когда есть тетрис, он просто существует, но он сам не следит за временем.
+    У него есть update от дельта тайм - что это будет за дельта тайм, вычислять будет НЕ ТЕТРИС, а какой-нибудь таймер
+    (например, в окне, который обновляется тогда, когда захочет MiniFB).
+    
+    То есть ДОПУСТИМ мы захотели сделать 6 тетрисов.
+
+    поток1: тетрис1 --> управляется окном
+    поток2: тетрис2,3,4,5 ---> просто в цикле прибавляется дельта тайм.
+    поток3: тетрис6 ---> while (true) {tetris6.update(0);} --
+              просто тупой пример, который показывает, что мы можем разделить тетрисы как угодно по потокам 
+              и в каждом потоке выбрать способ управления временем тетриса.
+
+    Посоветовался с клодом и в итоге это лучше чем та ХРЕНЬ которую я рассказывал в метро.
+
+
+    у окна будет два режима, режим управления и режим наблюдателя за ботом.
+    Когда режим управления, у нас в окне работает таймер, который связан и с инпутом, и с обновлением тетриса (как сейчас написано в tetris_window).
+    Понятно, что когда режим наблюдателя, бот там сам руководит таймером и соотвественно сам будет знать когда ему че нажимать. Как будет в примере ниже
+      (тут sleep_for нужен чтобы не перегружать процессор этим потоком). А от окна в этом режиме требуется только вывести игру.
+
+    Возможно, эти 2 режима будут 2 разных класса окна.
+    У нас сейчас tetris_window - это режим управления.
+
+    Возможно, режим наблюдателя будет принимать сразу массив тетрисов, и отрисовывать только какой-то один, и переключение по стрелочкам.
+
+    Возможно, можно сделать несколько окон.
+    */
 
 int main() {
-  tetris_bi::tetris_game game;
+  /* EXAMPLE OF TETRIS WITH TIMER HANDLE FROM SELF-MADE CYCLE */
+  tetris_bi::tetris_game game0, game1;
+  tetris_bi::timer local_timer;
+  bool at_end_of_main = false;
+  
+
+
+  /* EXAMPLE OF TETRIS WITH TIMER HANDLE FROM WINDOW */
   tetris_bi::tetris_window tw;
-  time_t aboba;
-  time(&aboba);
-  std::srand(aboba);
-  tw.link_tetris(game);
-  tw.run();
-#if 0
-  constexpr uint32_t W = 800;
-  constexpr uint32_t H = 600;
+  tw.link_tetris(game1);
 
-  render rnd(W, H);
+  std::thread th([&](){
+      while (!at_end_of_main) {
+        local_timer.update();
 
-  std::vector<std::vector<uint32_t>> field(10, std::vector<uint32_t>(30));
+        /* тут могут быть действия бота например */
 
-  field[4][4] = 1;
-  field[5][4] = 1;
-  field[4][5] = 1;
-  field[4][3] = 1;
+        // if (local_timer.time > 10)
+        //   tw.link_tetris(game0);  // lol так делать не надо потому что в тетрис виндоу уже есть таймер и апдейт тетриса, а этот цикл никуда не денется, тетрисом понятное дело должен руководить кто-то один, а тут мы 2 раза будем 2 дельта тайма прибавлять ахаххаха
+        game0.update(local_timer.delta_time); std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+      }
+    });
+  th.detach();  // Тетрисом game0 руководит цикл while (!at_end_of_main), дельта тайм вычисляется с помощью local_timer
 
-  rnd.render_tetris(field);
+  tw.run(); // Окно руководит тетрисом game1, т.к. мы его прилинковали
 
-  mfb_window *window = mfb_open_ex("Nk1 + av1 Super tertis", W, H, WF_RESIZABLE);
-  if (!window) {
-    return 1;
-  }
-  mfb_set_target_fps(1000);
+  at_end_of_main = true;
+  std::cout << "at end lol";
 
-  mfb_update_ex(window, rnd.get_buffer().data(), W, H);
-
-  mfb_timer *timer = mfb_timer_create();
-  mfb_timer_reset(timer);
-
-  double delta_time = mfb_timer_delta(timer);
-  double time_since_fps_update = 0;
-  int frame_count = 0;
-
-  do {
-    delta_time = mfb_timer_delta(timer);
-    time_since_fps_update += delta_time;
-    frame_count++;
-
-    mfb_update_ex(window, rnd.get_buffer().data(), W, H);
-
-    if (time_since_fps_update > 1) {
-      std::cout << frame_count << "FPS," << 1 / delta_time << "instantFPS\r";
-      time_since_fps_update = 0;
-      frame_count = 0;
-    }
-  } while(mfb_wait_sync(window));
-
-  mfb_timer_destroy(timer);
-  mfb_close(window);
-
-  return 0;
-#endif
 }

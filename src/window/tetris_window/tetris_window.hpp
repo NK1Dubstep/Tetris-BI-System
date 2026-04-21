@@ -30,6 +30,7 @@ namespace tetris_bi {
 
     void my_frame() override;
 
+    timer tim;  // mega timer
     tetris_game* m_tetris = nullptr;
   };
 }

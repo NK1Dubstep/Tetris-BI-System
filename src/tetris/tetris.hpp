@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "utils/timer.hpp"
+#include <atomic>
 #include <vector>
 
 namespace tetris_bi {
@@ -13,11 +15,11 @@ namespace tetris_bi {
     [[nodiscard]] int get_cell(int x, int y) const;
     void change_cell(const int x, const int y, const int val);
 
-    uint32_t get_width() const {
+    constexpr uint32_t get_width() const {
       return m_field_width;
     }
 
-    uint32_t get_height() const {
+    constexpr uint32_t get_height() const {
       return m_field_height;
     }
 
@@ -28,8 +30,8 @@ namespace tetris_bi {
     void remove_line(const int row);
     bool is_line_full(const int row);
 
-    const uint32_t m_field_width = 10;
-    const uint32_t m_field_height = 20;
+    const uint32_t m_field_width{10};
+    const uint32_t m_field_height{20};
     std::vector<std::vector<int>> m_tetris_field_ =
       std::vector<std::vector<int>>(m_field_width, std::vector<int>(m_field_height));
   };
@@ -40,61 +42,10 @@ namespace tetris_bi {
 
   class tetris_game {
   public:
-    tetris_game() {
-      m_shapes_presets =
-      {
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     1, 0}
-        }, // O-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 + 1, 1, 0}
-        }, // I-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0}
-        }, // S-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     1, 0}
-        }, // Z-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     1, 0}
-        }, // L-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 1, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     1, 0}
-        }, // J-figure
-        {
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 2, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2,     0, 0},
-          {static_cast<int>(m_tetris_field.get_width()) / 2 - 1, 1, 0}
-        } // T-figure
-      };
+    tetris_game();
 
-      m_shapes_types_presets = { shape_type::O, shape_type::I, shape_type::S, shape_type::Z,
-                                 shape_type::L, shape_type::J, shape_type::T };
-
-      generate_new_figure(m_current_figure);
-      for (auto& p : m_current_figure.points) {
-        m_tetris_field.change_cell(p.x, p.y, p.val);
-      }
-      generate_new_figure(m_next_figure);
+    ~tetris_game() {
+      is_game_over = true;
     }
 
     const tetris_field& get_tetris_field() const {
@@ -106,9 +57,17 @@ namespace tetris_bi {
     void rotateCW();
     void rotateCCW();
 
-    void update();
+    void update(timer::seconds delta_time);
 
   private:
+    void generate_shapes_data();
+    void tick();
+
+    enum class state : short {
+      IDLE, SESSION
+    };
+    state st{state::SESSION};
+
     struct point {
       point(int x_ = 0, int y_ = 0, int val_ = 0) : x(x_), y(y_), val(val_) {}
 
@@ -147,6 +106,8 @@ namespace tetris_bi {
     tetris_figure m_next_figure;
 
     bool is_game_over = false;
+
+    timer::seconds from_last_tick{0};
 
     // stats
     int m_score = 0;

@@ -79,5 +79,25 @@ namespace tetris_bi {
         draw_square(cx, cy, cell_size, color);
       }
     }
+
+    uint32_t grid_color = 0x222222;
+
+    for (uint32_t x = 0; x < field_w + 1; x++) {
+      uint32_t x1 = x, x2 = x1, y1 = 0, y2 = field_h;
+      x1 *= cell_size, x2 *= cell_size, y1 *= cell_size, y2 *= cell_size;
+
+      x1 += offsetX, x2 += offsetX, y1 += offsetY, y2 += offsetY;
+
+      draw_rectangle(x1, y1, x2, y2, grid_color);
+    }
+
+    for (uint32_t y = 0; y < field_h + 1; y++) {
+      uint32_t x1 = 0, x2 = field_w, y1 = y, y2 = y1;
+      x1 *= cell_size, x2 *= cell_size, y1 *= cell_size, y2 *= cell_size;
+
+      x1 += offsetX, x2 += offsetX, y1 += offsetY, y2 += offsetY;
+
+      draw_rectangle(x1, y1, x2, y2, grid_color);
+    }
   }
 }
