@@ -198,10 +198,10 @@ namespace tetris_bi {
       m_score += cleared * cleared;
       m_total_lines += cleared;
       m_figure_passed++, m_figure_passed_lvl++;
-      std::cout << "succeessfuly clear " << cleared << " lines!!!\n";
+      // std::cout << "succeessfuly clear " << cleared << " lines!!!\n";
 
       if (check_for_win()) {
-        std::cout << "You win!!!\n";
+        // std::cout << "You win!!!\n";
         go_next_level();
         generate_new_figure(m_current_figure);
         commit_current_figure();
@@ -210,7 +210,7 @@ namespace tetris_bi {
       }
       
       if (check_for_lose()) {
-        std::cout << "you lose:(\n";
+        // std::cout << "you lose:(\n";
         is_game_over = true;
         return;
       }

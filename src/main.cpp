@@ -15,6 +15,7 @@
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "tetris/bot/bot.hpp"
+#include "tetris/bot/bot_manager.hpp"
 
 /* 
   
@@ -75,53 +76,25 @@ int main() {
   // at_end_of_main = true;
   // std::cout << "at end lol";
 
-  bool at_end_of_main = false;
+  
   
   tetris_bi::super_tetris_window tw;
   
-  std::vector<tetris_bi::tetris_game> games(5);
+  std::vector<tetris_bi::tetris_game> games(10);
   std::mutex games_mutex;
-  
-  auto bot_manager = [&](int a, int b) {
-    tetris_bi::timer manager_timer;
-    tetris_bi::timer::seconds BOTS_MOVE_INTERVAL = 0.15;
-    tetris_bi::timer::seconds from_last_move = 0;
+  std::atomic<bool> at_end_of_main = false;
 
-    std::vector<tetris_bi::bot> bots;
-    
-    for (int i = a; i <= b; i++) {
-      bots.push_back(tetris_bi::bot(games[i]));
-      std::cout << "created bot with id:" << bots[i - a].get_id() << "\n";
-    }
-  
-    while (!at_end_of_main) {
-      manager_timer.update();
-      from_last_move += manager_timer.delta_time_p;
-      {
-        std::lock_guard lg(games_mutex);
-        
-        if (from_last_move > BOTS_MOVE_INTERVAL) {
-          for (int i = a; i <= b; i++) {
-            bots[i - a].make_move();
-          }
-          from_last_move = 0;
-        }
-  
-        for (int i = a; i <= b; i++) {
-          games[i].update(manager_timer.delta_time_p);
-        }
-      }
-  
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-  };
-  
   tw.link_games_mutex(games_mutex);
   tw.link_tetris_games(games);
   
-  std::thread thread1([&]() {bot_manager(0, 2); });
+  tetris_bi::bot_manager bm1(games.data(), 5, 1);
+  std::thread thread1([&]() {bm1.run_bots(&at_end_of_main, &games_mutex); });
+
+  tetris_bi::bot_manager bm2(games.data() + 5, 5, 0.06);
+  std::thread thread2([&]() {bm2.run_bots(&at_end_of_main, &games_mutex); });
+
+
   thread1.detach();
-  std::thread thread2([&]() {bot_manager(3, 4); });
   thread2.detach();
   
   tw.run();

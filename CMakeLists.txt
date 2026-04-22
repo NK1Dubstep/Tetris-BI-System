@@ -16,6 +16,7 @@ set(SOURCES
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
   src/tetris/bot/bot.cpp
+  src/tetris/bot/bot_manager.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")
@@ -32,12 +33,13 @@ target_link_libraries(${TARGET_NAME}
 target_include_directories(${TARGET_NAME}
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/minifb
+  ${CMAKE_CURRENT_SOURCE_DIR}/httplib
   ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 # Compile options
 if(MSVC)
-  target_compile_options(${TARGET_NAME} PRIVATE /W4)
+  target_compile_options(${TARGET_NAME} PRIVATE /W4 /std:c++20)
   #[[
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(${TARGET_NAME} PRIVATE
