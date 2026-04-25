@@ -16,7 +16,6 @@ set(SOURCES
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
   src/tetris/bot/bot.cpp
-  src/tetris/bot/bot_manager.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")

@@ -15,7 +15,6 @@
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "tetris/bot/bot.hpp"
-#include "tetris/bot/bot_manager.hpp"
 
 /* 
   
@@ -48,36 +47,6 @@
     */
 
 int main() {
-  // /* EXAMPLE OF TETRIS WITH TIMER HANDLE FROM SELF-MADE CYCLE */
-  // tetris_bi::tetris_game game0, game1;
-  // tetris_bi::timer local_timer;
-  // bool at_end_of_main = false;
-  // 
-  // 
-  // /* EXAMPLE OF TETRIS WITH TIMER HANDLE FROM WINDOW */
-  // tetris_bi::tetris_window tw;
-  // tw.link_tetris(game1);
-  // 
-  // std::thread th([&](){
-  //     while (!at_end_of_main) {
-  //       local_timer.update();
-  // 
-  //       /* тут могут быть действия бота например */
-  // 
-  //       // if (local_timer.time > 10)
-  //       //   tw.link_tetris(game0);  // lol так делать не надо потому что в тетрис виндоу уже есть таймер и апдейт тетриса, а этот цикл никуда не денется, тетрисом понятное дело должен руководить кто-то один, а тут мы 2 раза будем 2 дельта тайма прибавлять ахаххаха
-  //       game0.update(local_timer.delta_time); std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
-  //     }
-  //   });
-  // th.detach();  // Тетрисом game0 руководит цикл while (!at_end_of_main), дельта тайм вычисляется с помощью local_timer
-  // 
-  // tw.run(); // Окно руководит тетрисом game1, т.к. мы его прилинковали
-  // 
-  // at_end_of_main = true;
-  // std::cout << "at end lol";
-
-  
-  
   tetris_bi::super_tetris_window tw;
   
   std::vector<tetris_bi::tetris_game> games(10);
@@ -86,19 +55,9 @@ int main() {
 
   tw.link_games_mutex(games_mutex);
   tw.link_tetris_games(games);
-  
-  tetris_bi::bot_manager bm1(games.data(), 5, 1);
-  std::thread thread1([&]() {bm1.run_bots(&at_end_of_main, &games_mutex); });
 
-  tetris_bi::bot_manager bm2(games.data() + 5, 5, 0.06);
-  std::thread thread2([&]() {bm2.run_bots(&at_end_of_main, &games_mutex); });
-
-
-  thread1.detach();
-  thread2.detach();
-  
-  tw.run();
+  // tw.run();
   
   at_end_of_main = true;
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
