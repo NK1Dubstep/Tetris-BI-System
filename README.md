@@ -3,6 +3,8 @@ SPb HSE Computer Games Programming &amp; Engineering, 1st course 2025/26 Project
 
 **Project start**: Feb 2026
 
+**Project end**: 202?
+
 **Assignee**: Ilya Pshenichniy
 
 **Authors**: Artem Vysotin, Nikita Koptelov
