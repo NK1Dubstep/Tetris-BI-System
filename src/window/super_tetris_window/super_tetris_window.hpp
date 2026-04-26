@@ -10,19 +10,12 @@
 #include "window/window.hpp"
 #include "render/render.hpp"
 #include "tetris/tetris.hpp"
+#include "tetris/bot/bots_client.hpp"
 
 namespace tetris_bi {
   class super_tetris_window : public window, public render {
   public:
     super_tetris_window();
-
-    void link_tetris_games(std::vector<tetris_game>& games) {
-      m_tetris_games = &games;
-    }
-
-    void link_games_mutex(std::mutex& m_) {
-      m_games_mutex = &m_;
-    }
 
   private:
     void my_active(mfb_window*, bool is_active) override;
@@ -36,8 +29,10 @@ namespace tetris_bi {
 
     void my_frame() override;
 
-    std::vector<tetris_game>* m_tetris_games = nullptr;
-    uint32_t m_draw_index = 0;
-    std::mutex* m_games_mutex = nullptr;
+    const int BOT_NUMBER = 10000;
+
+    bots_client bsc = bots_client(BOT_NUMBER);
+    timer tim;
+    int draw_index{0};
   };
 }

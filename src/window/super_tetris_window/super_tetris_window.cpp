@@ -53,13 +53,13 @@ namespace tetris_bi {
     [[maybe_unused]] bool is_pressed
   ) {
 
-    if (is_pressed && m_tetris_games) {
+    if (is_pressed) {
       switch (key) {
       case mfb_key::KB_KEY_D:
-        m_draw_index = (m_draw_index + 1) % m_tetris_games->size();
+        draw_index = (draw_index + 1) % BOT_NUMBER;
         break;
       case mfb_key::KB_KEY_A:
-        m_draw_index = (m_draw_index - 1 + m_tetris_games->size()) % m_tetris_games->size();
+        draw_index = (draw_index - 1 + BOT_NUMBER) % BOT_NUMBER;
         break;
       default:
         break;
@@ -97,12 +97,9 @@ namespace tetris_bi {
   }
 
   void super_tetris_window::my_frame() {
-    {
-      if (!m_games_mutex || !m_tetris_games) return;
-
-      std::lock_guard lg(*m_games_mutex);
-      render_tetris((*m_tetris_games)[m_draw_index].get_tetris_field());
-    }
+    tim.update();
+    bsc.update(tim.delta_time_p);
+    render_tetris(bsc.bots[draw_index].game.get_tetris_field());
     mfb_update_ex(win, render::get_buffer().data(), width, height);
   }
 }

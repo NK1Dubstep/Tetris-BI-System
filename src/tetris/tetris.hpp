@@ -32,9 +32,9 @@ namespace tetris_bi {
     void remove_line(const int row);
     bool is_line_full(const int row);
 
-    const uint32_t m_field_width{10};
-    const uint32_t m_field_height{20};
-    std::vector<std::vector<int>> m_tetris_field_ =
+    uint32_t m_field_width{10};
+    uint32_t m_field_height{20};
+    std::vector<std::vector<int>> tetris_field_ =
       std::vector<std::vector<int>>(m_field_width, std::vector<int>(m_field_height));
   };
 
@@ -46,12 +46,8 @@ namespace tetris_bi {
   public:
     tetris_game();
 
-    ~tetris_game() {
-      is_game_over = true;
-    }
-
-    const tetris_field& get_tetris_field() const {
-      return m_tetris_field;
+    const tetris_field &get_tetris_field() const {
+      return tetris_field;
     }
 
     void move_direction(int dir);
@@ -61,17 +57,21 @@ namespace tetris_bi {
 
     void update(timer::seconds delta_time);
 
-  private:
-    void generate_shapes_data();
-    void tick();
+    void start_session() noexcept;
+    void end_session() noexcept;
 
     enum class state : short {
       IDLE, SESSION
     };
-    state st{state::SESSION};
+
+    [[nodiscard]] state get_state() noexcept;
+
+  private:
+    void generate_shapes_data();
+    void tick();
 
     struct point {
-      point(int x_ = 0, int y_ = 0, int val_ = 0) : x(x_), y(y_), val(val_) {}
+      point(int x = 0, int y = 0, int val = 0) : x(x), y(y), val(val) {}
 
       int x = 0;
       int y = 0;
@@ -106,26 +106,46 @@ namespace tetris_bi {
     bool check_for_lose() const;
 
     void go_next_level();
+    
 
-    int m_figure_to_win = 500;
-    uint32_t m_level_number = 1;
-    uint32_t m_lose_line = 2;
-    int m_figure_passed_lvl = 0;
+    std::vector<tetris_shape> shapes_presets;
+    std::vector<shape_type> shapes_types_presets;
 
-    std::vector<tetris_shape> m_shapes_presets;
-    std::vector<shape_type> m_shapes_types_presets;
+    /*** Dynamic ***/
 
-    tetris_field m_tetris_field;
-    tetris_figure m_current_figure;
-    tetris_figure m_next_figure;
+    // progress
+    struct session_prog {
+      int score{0};
+      int total_lines{0};
+      int figure_passed{0};
+      int figure_passed_lvl{0};
+    } prog;
 
-    bool is_game_over = false;
+    // difficulty
+    struct session_diff {
+      uint32_t level_number{1};
+      int figure_to_win{50};
+      uint32_t lose_line{2};
+    } diff;
+
+    state st{state::IDLE};
+
+    tetris_field tetris_field;
+    tetris_figure current_figure;
+    tetris_figure next_figure;
 
     timer::seconds from_last_tick{0};
 
-    // stats
-    int m_score = 0;
-    int m_total_lines = 0;
-    int m_figure_passed = 0;
+  public:
+    struct session_stats {
+      session_prog prog;
+      session_diff diff;
+    };
+
+  private:
+    std::vector<session_stats> played_sessions_stats;
+
+  public:
+    std::optional<session_stats> pop_last_played_session_stats();
   };
 }

@@ -15,24 +15,36 @@ set(SOURCES
   src/tetris/tetris.cpp
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
-  src/tetris/bot/bot.cpp
+  src/tetris/bot/bot_client.cpp
+  src/tetris/bot/bots_client.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")
 
 add_subdirectory(minifb)
 
+set(USE_TLS OFF CACHE BOOL "" FORCE)
+set(USE_WS OFF CACHE BOOL "" FORCE)
+set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+set(USE_ZLIB OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(ixwebsocket)
+if (MSVC)
+  target_compile_options(ixwebsocket PRIVATE /w)
+endif()
+
 add_executable(${TARGET_NAME} ${SOURCES})
 
 target_link_libraries(${TARGET_NAME}
   PRIVATE
   minifb
+  ixwebsocket
 )
 
 target_include_directories(${TARGET_NAME}
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/minifb
-  ${CMAKE_CURRENT_SOURCE_DIR}/httplib
+  ${CMAKE_CURRENT_SOURCE_DIR}/ixwebsocket
   ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 

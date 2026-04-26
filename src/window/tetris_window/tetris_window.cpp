@@ -59,6 +59,16 @@ namespace tetris_bi {
     // std::cout << std::format("(MiniFB callback called, my_keyboard), Press flag: {}\n", is_pressed);
 
     if (is_pressed) {
+      if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_S) {
+        m_tetris->start_session();
+        return;
+      }
+
+      if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_E) {
+        m_tetris->end_session();
+        return;
+      }
+
       switch (key) {
         case mfb_key::KB_KEY_A:
           m_tetris->move_direction(-1);
@@ -120,5 +130,4 @@ namespace tetris_bi {
     render_tetris(m_tetris->get_tetris_field());
     mfb_update_ex(win, render::get_buffer().data(), width, height);
   }
-
 }

@@ -3,6 +3,7 @@
  * Academic Director : IlyaP
  */
 
+#define MINIFB_IMPLEMENTATION
 #include "window.hpp"
 
 #include <stdexcept>

@@ -10,14 +10,14 @@ namespace tetris_bi {
     if (x < 0 || x >= m_field_width || y < 0 || y >= m_field_height) {
       return -1;
     }
-    return m_tetris_field_[x][y];
+    return tetris_field_[x][y];
   }
 
   void tetris_field::change_cell(const int x, const int y, const int val) {
     if (x < 0 || x >= m_field_width || y < 0 || y >= m_field_height) {
       return;
     }
-    m_tetris_field_[x][y] = val;
+    tetris_field_[x][y] = val;
   }
 
   bool tetris_field::is_line_full(const int row) {
@@ -26,7 +26,7 @@ namespace tetris_bi {
     }
 
     for (int x = 0; x < m_field_width; x++) {
-      if (m_tetris_field_[x][row] == 0) {
+      if (tetris_field_[x][row] == 0) {
         return false;
       }
     }
@@ -38,13 +38,13 @@ namespace tetris_bi {
 
     for (int y = row; y > 0; y--) {
       for (int x = 0; x < m_field_width; x++) {
-        int val = m_tetris_field_[x][y - 1];
-        m_tetris_field_[x][y] = val;
+        int val = tetris_field_[x][y - 1];
+        tetris_field_[x][y] = val;
       }
     }
 
     for (int x = 0; x < m_field_width; x++) {
-      m_tetris_field_[x][0] = 0;
+      tetris_field_[x][0] = 0;
     }
   }
 
@@ -66,7 +66,7 @@ namespace tetris_bi {
   void tetris_field::reset() {
     for (int x = 0; x < m_field_width; x++) {
       for (int y = 0; y < m_field_height; y++) {
-        m_tetris_field_[x][y] = 0;
+        tetris_field_[x][y] = 0;
       }
     }
   }
