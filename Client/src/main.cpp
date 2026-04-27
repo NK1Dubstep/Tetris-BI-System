@@ -16,8 +16,11 @@
 int main() {
   // auto &x = tetris_bi::net::get();
 
-  auto x = tetris_bi::net::login();
+  // auto id = tetris_bi::net::login();
 
   tetris_bi::super_tetris_window tw;
   tw.run();
+
+  // tetris_bi::super_tetris_window tw;
+  // tw.run();
 }

@@ -5,6 +5,11 @@
 
 #pragma once
 
+// IXWebSocket
+#include "ixwebsocket/IXNetSystem.h"
+#include "ixwebsocket/IXWebSocket.h"
+#include "ixwebsocket/IXUserAgent.h"
+
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "utils/random.hpp"
@@ -21,6 +26,7 @@ namespace tetris_bi {
 
   private:
     struct bot {
+      std::optional<uint32_t> id{std::nullopt};
       tetris_game game;
       tetris_game::state prev_state{tetris_game::state::IDLE};
       timer::seconds in_session{0};
@@ -30,7 +36,16 @@ namespace tetris_bi {
       static constexpr timer::seconds TICK_INTERVAL{0.1};
     };
 
+    ix::WebSocket ws;
+    std::atomic<bool> is_connected;
+
+    void connect();
+
+    void bot_register(int i);
+    void set_is_playing_tetris(bot &bt, bool b);
+
     timer tim;
     std::vector<bot> bots;
+    std::mutex bots_mutex;
   };
 }
