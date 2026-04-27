@@ -1,6 +1,9 @@
 [submodule "minifb"]
-	path = Client/minifb
+	path = Client/third_party/minifb
 	url = https://github.com/emoon/minifb.git
 [submodule "ixwebsocket"]
-	path = Client/ixwebsocket
+	path = Client/third_party/ixwebsocket
 	url = https://github.com/machinezone/IXWebSocket.git
+[submodule "Client/third_party/json"]
+	path = Client/third_party/json
+	url = https://github.com/nlohmann/json.git

@@ -16,7 +16,7 @@ namespace tetris_bi {
   public:
     bot_client();
 
-    void do_something(timer::seconds delta_time);
+    void update();
 
   private:
     tetris_game game;
@@ -25,6 +25,7 @@ namespace tetris_bi {
     timer::seconds in_idle{0};
     timer::seconds session_exit, idle_exit;
     timer::seconds last_tick{0};
+    timer tim;
     static constexpr timer::seconds TICK_INTERVAL{0.1};
   };
 }

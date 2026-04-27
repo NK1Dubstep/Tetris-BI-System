@@ -26,16 +26,19 @@ namespace tetris_bi {
   {
   }
 
-  void bot_client::do_something(timer::seconds delta_time) {
+  void bot_client::update() {
+    tim.update();
+    auto dt = tim.delta_time_p;
+
     tetris_game::state st;
-    game.update(delta_time);
+    game.update(dt);
     st = game.get_state();
     if (st == tetris_game::state::IDLE) {
       if (prev_state == tetris_game::state::SESSION) {
         idle_exit = generate_random_idle_exit();
         in_idle = 0;
       } else {
-        in_idle += delta_time;
+        in_idle += dt;
       }
       if (in_idle > idle_exit) {
         game.start_session();
@@ -47,8 +50,8 @@ namespace tetris_bi {
         in_session = 0;
         last_tick = 0;
       } else {
-        in_session += delta_time;
-        last_tick += delta_time;
+        in_session += dt;
+        last_tick += dt;
       }
       if (in_session > session_exit) {
         game.end_session();

@@ -17,7 +17,7 @@ namespace tetris_bi {
   public:
     bots_client(int n);
 
-    void update(timer::seconds delta_time);
+    void update();
 
   private:
     struct bot {
@@ -30,6 +30,7 @@ namespace tetris_bi {
       static constexpr timer::seconds TICK_INTERVAL{0.1};
     };
 
+    timer tim;
     std::vector<bot> bots;
   };
 }

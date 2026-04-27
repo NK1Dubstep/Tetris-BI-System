@@ -98,7 +98,7 @@ namespace tetris_bi {
 
   void super_tetris_window::my_frame() {
     tim.update();
-    bsc.update(tim.delta_time_p);
+    bsc.update();
     render_tetris(bsc.bots[draw_index].game.get_tetris_field());
     mfb_update_ex(win, render::get_buffer().data(), width, height);
   }

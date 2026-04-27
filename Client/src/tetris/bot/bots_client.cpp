@@ -29,17 +29,20 @@ namespace tetris_bi {
     }
   }
 
-  void bots_client::update(timer::seconds delta_time) {
+  void bots_client::update() {
+    tim.update();
+    auto dt = tim.delta_time_p;
+
     for (auto &bot : bots) {
       tetris_game::state st;
-      bot.game.update(delta_time);
+      bot.game.update(dt);
       st = bot.game.get_state();
       if (st == tetris_game::state::IDLE) {
         if (bot.prev_state == tetris_game::state::SESSION) {
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
         } else {
-          bot.in_idle += delta_time;
+          bot.in_idle += dt;
         }
         if (bot.in_idle > bot.idle_exit) {
           bot.game.start_session();
@@ -51,8 +54,8 @@ namespace tetris_bi {
           bot.in_session = 0;
           bot.last_tick = 0;
         } else {
-          bot.in_session += delta_time;
-          bot.last_tick += delta_time;
+          bot.in_session += dt;
+          bot.last_tick += dt;
         }
         if (bot.in_session > bot.session_exit) {
           bot.game.end_session();
