@@ -1,0 +1,1 @@
+CREATE INDEX idx_players_playing_tetris ON players(is_playing, is_playing_tetris) WHERE is_playing = TRUE;

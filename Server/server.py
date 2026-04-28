@@ -17,6 +17,9 @@ DB_CONFIG = {
   "port": "1492"
 }
 
+is_playing_number = 0
+is_playing_tetris_number = 0
+
 connection_pool = pool.ThreadedConnectionPool(1, 20, **DB_CONFIG)
 
 @contextmanager
@@ -63,6 +66,8 @@ def login_as_free_player():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+  global is_playing_number, is_playing_tetris_number
+
   await websocket.accept()
   active_connections.append(websocket)
 
@@ -96,76 +101,37 @@ async def websocket_endpoint(websocket: WebSocket):
 
       if message["type"] == "register_batch":
         number = message["number"]
-
-        # Подготовка данных: каждая строка — кортеж значений
-        # Для повторяющихся значений (NOW(), NOW(), TRUE) можно сделать так:
-        # Но NOW() — это функция БД, её нельзя передавать как значение.
-        # Правильнее: вставить одну строку с вычислением NOW() на стороне БД,
-        # либо передать одинаковое время из Python, либо использовать DEFAULT.
-        # Я покажу два варианта.
-
-        # Вариант А: вставить number строк, но с одинаковым значением NOW().
-        # Для этого используем execute_values с явным указанием "NOW()" в шаблоне:
-        insert_sql = """
-          INSERT INTO players (with_us_since, last_login, is_playing)
-          VALUES %s
-          RETURNING id
-        """
-        # Шаблон для одной строки: (NOW(), NOW(), TRUE) — это не плейсхолдеры, а текст
-        # execute_values позволяет задать шаблон, куда подставляются значения.
-        # Но т.к. значения не меняются, можно проще:
-
-        # Вариант Б (рекомендую): генерируем простой INSERT без плейсхолдеров
-        # При условии, что number не слишком огромное (безопасно)
-        values = ','.join(['(NOW(), NOW(), TRUE)'] * number)
-        query = f"INSERT INTO players (with_us_since, last_login, is_playing) VALUES {values} RETURNING id"
+        BATCH_SIZE = 1000  # оптимальный размер пачки
+        all_new_ids = []
 
         with get_db() as conn:
           with conn.cursor() as cur:
-            cur.execute(query)
-            new_ids = [row[0] for row in cur.fetchall()]
-        conn = None  # после выхода из with соединение закрыто
+            for batch_start in range(0, number, BATCH_SIZE):
+              batch_end = min(batch_start + BATCH_SIZE, number)
+              batch_number = batch_end - batch_start
+
+              values = ','.join(['(NOW(), NOW(), TRUE)'] * batch_number)
+              query = f"INSERT INTO players (with_us_since, last_login, is_playing) VALUES {values} RETURNING id"
+
+              cur.execute(query)
+              batch_ids = [row[0] for row in cur.fetchall()]
+              all_new_ids.extend(batch_ids)
 
         # Обновляем словарь websocket_ids
         if websocket_ids.get(websocket) is None:
-          websocket_ids[websocket] = new_ids
+          websocket_ids[websocket] = all_new_ids
         else:
-          websocket_ids[websocket].extend(new_ids)
+          websocket_ids[websocket].extend(all_new_ids)
 
         await websocket.send_text(json.dumps({
           "message": "register_batch",
-          "ids": new_ids
+          "ids": all_new_ids
         }))
-
-      #if message["type"] == "register_batch":
-      #    number = message["number"]
-      #
-      #    new_ids = []
-      #
-      #    for i in range(number):
-      #        with get_db() as conn:
-      #            with conn.cursor() as cur:
-      #                cur.execute("""
-      #                    INSERT INTO players (with_us_since, last_login, is_playing)
-      #                    VALUES (NOW(), NOW(), TRUE)
-      #                    RETURNING id
-      #                """)
-      #                id = cur.fetchone()[0]
-      #
-      #            new_ids.append(id)
-      #            if websocket_ids.get(websocket) is None:
-      #                websocket_ids[websocket] = [id]
-      #            else:
-      #                websocket_ids[websocket].append(id)
-      #
-      #    await websocket.send_text(json.dumps({
-      #        "message": "register_batch",
-      #        "ids": new_ids
-      #    }))
 
       if message["type"] == "set_is_playing_tetris_batch":
         updates = message["data"]
         for u in updates:
+          value = u["value"]
           is_playing_tetris_state[u["id"]] = u["value"]
 
   except Exception as e:
@@ -182,6 +148,7 @@ async def websocket_endpoint(websocket: WebSocket):
             """, (id,))
       del websocket_ids[websocket]
 
+
     if websocket in active_connections:
       active_connections.remove(websocket)
 
@@ -193,6 +160,7 @@ async def collect_ccu():
         with conn.cursor() as cur:
           cur.execute("SELECT COUNT(*) FROM players WHERE is_playing = TRUE AND is_playing_tetris = TRUE")
           ccu_value = cur.fetchone()[0]
+          # dont work (problems with disconnect) ccu_value = is_playing_tetris_number
           cur.execute("INSERT INTO ccu (ts, value) VALUES (NOW(), %s)", (ccu_value,))
     except Exception as e:
       print(f"CCU error: {e}")
@@ -205,11 +173,13 @@ async def flush_is_playing_tetris_state():
     if not is_playing_tetris_state:
       continue
     snapshot = is_playing_tetris_state.copy()
+    is_playing_tetris_state.clear()
+
     with get_db() as conn:
       with conn.cursor() as cur:
         cur.executemany("""
           UPDATE players SET is_playing_tetris = %s WHERE id = %s
-        """, [("TRUE" if v else "FALSE", k) for k, v in snapshot.items()])
+        """, [(v, k) for k, v in snapshot.items()])
 
 
 @app.on_event("startup")

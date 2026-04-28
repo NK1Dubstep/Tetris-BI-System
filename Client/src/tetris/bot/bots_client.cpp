@@ -14,8 +14,7 @@ namespace tetris_bi {
 
   namespace {
     auto generate_random_idle_exit() {
-      // return generate_randui32() % 10;
-      return 1;
+      return generate_randui32() % 10;
     }
 
     auto generate_random_session_exit() {
@@ -103,6 +102,9 @@ namespace tetris_bi {
 
     if (tim.time - last_iptu_send_time > 1) {
       nlohmann::json arr = nlohmann::json::array();
+      auto &vec = arr.get_ref<nlohmann::json::array_t&>();
+      vec.reserve(is_playing_tetris_updates.size());
+
       for (auto &[id, value] : is_playing_tetris_updates) {
         arr.push_back({{"id", id}, {"value", value}});
       }
