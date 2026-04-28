@@ -21,10 +21,13 @@ namespace tetris_bi {
     friend class super_tetris_window;
   public:
     bots_client(int n);
+    ~bots_client() {ws.stop();}
 
     void update();
 
   private:
+    int number;
+
     struct bot {
       std::optional<uint32_t> id{std::nullopt};
       tetris_game game;
@@ -36,12 +39,22 @@ namespace tetris_bi {
       static constexpr timer::seconds TICK_INTERVAL{0.1};
     };
 
+    struct is_playing_tetris_update {
+      uint32_t id;
+      bool value;
+    };
+
+    std::vector<is_playing_tetris_update> is_playing_tetris_updates;
+    timer::seconds last_iptu_send_time;
+
     ix::WebSocket ws;
     std::atomic<bool> is_connected;
 
     void connect();
 
     void bot_register(int i);
+    void bots_register();
+    std::atomic<bool> register_finished{false};
     void set_is_playing_tetris(bot &bt, bool b);
 
     timer tim;

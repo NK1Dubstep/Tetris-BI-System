@@ -242,7 +242,7 @@ namespace tetris_bi {
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.05;
+    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.35;
 
     if (st == state::SESSION) {
       from_last_tick += delta_time;

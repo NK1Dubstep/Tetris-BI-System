@@ -1,0 +1,7 @@
+CREATE TABLE players (
+    id BIGSERIAL PRIMARY KEY,
+    with_us_since TIMESTAMP NOT NULL DEFAULT NOW(),
+    last_login TIMESTAMP NOT NULL DEFAULT NOW(),
+    is_playing BOOLEAN NOT NULL DEFAULT FALSE,
+    is_playing_tetris BOOLEAN NOT NULL DEFAULT FALSE
+);

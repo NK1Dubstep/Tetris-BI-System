@@ -29,7 +29,7 @@ namespace tetris_bi {
 
     void my_frame() override;
 
-    const int BOT_NUMBER = 50;
+    static const int BOT_NUMBER;
 
     bots_client bsc = bots_client(BOT_NUMBER);
     timer tim;

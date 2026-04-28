@@ -14,28 +14,32 @@ namespace tetris_bi {
 
   namespace {
     auto generate_random_idle_exit() {
-      return generate_randui32() % 10;
+      // return generate_randui32() % 10;
+      return 1;
     }
 
     auto generate_random_session_exit() {
-      return generate_randui32() % 60 + 90;
+      return 1000;  // generate_randui32() % 60 + 90;
     }
   }
 
   bots_client::bots_client(int n) :
-    bots(n)
+    bots(n), number(n)
   {
     for (auto &bot : bots) {
       bot.idle_exit = generate_random_idle_exit();
       bot.session_exit = generate_random_session_exit();
     }
     connect();
-    for (int i = 0; i < bots.size(); i++) {
-      bot_register(i);
-    }
+    bots_register();
+    is_playing_tetris_updates.reserve(n);
+    last_iptu_send_time = tim.time;
   }
 
   void bots_client::update() {
+    if (!register_finished) {
+      return;
+    }
     std::lock_guard guard(bots_mutex);
 
     tim.update();
@@ -43,20 +47,22 @@ namespace tetris_bi {
 
     for (auto &bot : bots) {
       auto stats = bot.game.pop_last_played_session_stats();
-      if (is_connected && bot.id.has_value() && stats.has_value()) {
-        nlohmann::json js = nlohmann::json{
-          {"type", "send_stats"},
-          {"session", {{"id", bot.id.value()}, {"figure_passed", stats->prog.figure_passed}}}
-        };
-        ws.send(js.dump());
-      }
+      // if (is_connected && bot.id.has_value() && stats.has_value()) {
+      //   nlohmann::json js = nlohmann::json{
+      //     {"type", "send_stats"},
+      //     {"session", {{"id", bot.id.value()}, {"figure_passed", stats->prog.figure_passed}}}
+      //   };
+      //   ws.send(js.dump());
+      // }
 
       tetris_game::state st;
       bot.game.update(dt);
       st = bot.game.get_state();
       if (st == tetris_game::state::IDLE) {
         if (bot.prev_state == tetris_game::state::SESSION) {
-          set_is_playing_tetris(bot, false);
+          if (bot.id.has_value()) {
+            is_playing_tetris_updates.push_back(is_playing_tetris_update{bot.id.value(), false});
+          }
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
         } else {
@@ -68,7 +74,9 @@ namespace tetris_bi {
         bot.prev_state = tetris_game::state::IDLE;
       } else if (st == tetris_game::state::SESSION) {
         if (bot.prev_state == tetris_game::state::IDLE) {
-          set_is_playing_tetris(bot, true);
+          if (bot.id.has_value()) {
+            is_playing_tetris_updates.push_back(is_playing_tetris_update{bot.id.value(), true});
+          }
           bot.session_exit = generate_random_session_exit();
           bot.in_session = 0;
           bot.last_tick = 0;
@@ -91,6 +99,16 @@ namespace tetris_bi {
         }
         bot.prev_state = tetris_game::state::SESSION;
       }
+    }  // end of for
+
+    if (tim.time - last_iptu_send_time > 1) {
+      nlohmann::json arr = nlohmann::json::array();
+      for (auto &[id, value] : is_playing_tetris_updates) {
+        arr.push_back({{"id", id}, {"value", value}});
+      }
+      ws.send(nlohmann::json{{"type", "set_is_playing_tetris_batch"}, {"data", arr}}.dump());
+      is_playing_tetris_updates.clear();
+      last_iptu_send_time = tim.time;
     }
   }
 
@@ -108,12 +126,25 @@ namespace tetris_bi {
       }
       else if (msg->type == ix::WebSocketMessageType::Message) {
         nlohmann::json js = nlohmann::json::parse(msg->str);
+        std::string message = js["message"];
+        if (message == "register") {
 
-        auto id = js["id"];
-        auto bot_index = js["bot_index"];
+          auto id = js["id"];
+          auto bot_index = js["bot_index"];
 
-        std::lock_guard guard(bots_mutex);
-        bots[bot_index].id = id;
+          std::lock_guard guard(bots_mutex);
+          bots[bot_index].id = id;
+        }
+        else if (message == "register_batch") {
+          auto x = js["ids"];
+
+          std::lock_guard guard(bots_mutex);
+
+          for (int i = 0; i < number; i++) {
+            bots[i].id = x[i];
+          }
+          register_finished = true;
+        }
       }
       else if (msg->type == ix::WebSocketMessageType::Error) {
         std::cerr << "WebSocket error: " << msg->errorInfo.reason << std::endl;
@@ -135,6 +166,12 @@ namespace tetris_bi {
   void bots_client::bot_register(int i) {
     if (is_connected) {
       ws.send(R"({"type":"register", "bot_index": )" + std::to_string(i) + "}");
+    }
+  }
+
+  void bots_client::bots_register() {
+    if (is_connected) {
+      ws.send(R"({"type":"register_batch", "number": )" + std::to_string(number) + "}");
     }
   }
 

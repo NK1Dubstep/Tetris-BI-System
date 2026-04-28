@@ -20,6 +20,7 @@
     async function fetchData() {
       try {
         const response = await fetch('/tetris_bi/get_ccu_data?limit=100');
+        console.log(response)
         const data = await response.json();
 
         document.getElementById('total_points').textContent = data.total_points;

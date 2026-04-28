@@ -15,6 +15,8 @@
 
 namespace tetris_bi {
 
+  const int super_tetris_window::BOT_NUMBER = 10'000;
+
   super_tetris_window::super_tetris_window() :
     window("Nk1 av1 super tertis", 800, 800),
     render(800, 800)
