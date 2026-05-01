@@ -15,13 +15,13 @@
 
 namespace tetris_bi {
 
-  const int super_tetris_window::BOT_NUMBER = 10'000;
+  const int super_tetris_window::BOT_NUMBER = 1'000;
 
   super_tetris_window::super_tetris_window() :
     window("Nk1 av1 super tertis", 800, 800),
     render(800, 800)
   {
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 
   void super_tetris_window::my_active(
@@ -39,7 +39,7 @@ namespace tetris_bi {
 
     render::resize(w, h);
     render::draw_rectangle(0, 0, 100, 100, 0x834d18);
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 
   bool super_tetris_window::my_close(
@@ -102,6 +102,6 @@ namespace tetris_bi {
     tim.update();
     bsc.update();
     render_tetris(bsc.bots[draw_index].game.get_tetris_field());
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 }

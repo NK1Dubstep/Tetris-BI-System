@@ -100,7 +100,7 @@ namespace tetris_bi {
       }
     }  // end of for
 
-    if (tim.time - last_iptu_send_time > 1) {
+    if (is_connected && tim.time - last_iptu_send_time > 1) {
       nlohmann::json arr = nlohmann::json::array();
       auto &vec = arr.get_ref<nlohmann::json::array_t&>();
       vec.reserve(is_playing_tetris_updates.size());
@@ -115,7 +115,7 @@ namespace tetris_bi {
   }
 
   void bots_client::connect() {
-    ws.setUrl("ws://127.0.0.1:5837/ws");
+    ws.setUrl("ws://26.60.218.199:5837/ws");
 
     ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr &msg) {
       if (msg->type == ix::WebSocketMessageType::Open) {

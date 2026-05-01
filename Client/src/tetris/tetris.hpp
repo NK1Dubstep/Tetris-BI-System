@@ -114,19 +114,25 @@ namespace tetris_bi {
     /*** Dynamic ***/
 
     // progress
+  public:
     struct session_prog {
       int score{0};
       int total_lines{0};
       int figure_passed{0};
       int figure_passed_lvl{0};
-    } prog;
+    };
+  private:
+    session_prog prog;
 
     // difficulty
+  public:
     struct session_diff {
       uint32_t level_number{1};
       int figure_to_win{50};
       uint32_t lose_line{2};
-    } diff;
+    };
+  private:
+    session_diff diff;
 
     state st{state::IDLE};
 
@@ -147,5 +153,13 @@ namespace tetris_bi {
 
   public:
     std::optional<session_stats> pop_last_played_session_stats();
+
+    [[nodiscard]] session_prog get_prog() const noexcept {
+      return prog;
+    }
+
+    [[nodiscard]] session_diff get_diff() const noexcept {
+      return diff;
+    }
   };
 }
