@@ -20,7 +20,7 @@ namespace tetris_bi {
     render(800, 800)
   {
     // render::draw_rectangle(0, 0, 100, 100, 0x834d18);
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 
   void tetris_window::my_active(
@@ -39,7 +39,8 @@ namespace tetris_bi {
 
     render::resize(w, h);
     render::draw_rectangle(0, 0, 100, 100, 0x834d18);
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+    render::draw_string("ABOBA", 0, 0, 0);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
     // std::cout << std::format("(MiniFB callback called, my_resize) Was resized to: {} {}\n", w, h);
   }
 
@@ -128,6 +129,22 @@ namespace tetris_bi {
     tim.update();
     m_tetris->update(tim.delta_time_p);
     render_tetris(m_tetris->get_tetris_field());
-    mfb_update_ex(win, render::get_buffer().data(), width, height);
+
+    auto prog = m_tetris->get_prog(); auto diff = m_tetris->get_diff();
+
+    auto str = std::format(
+      R"(Nk1 av1 super tertis
+Tertis prog score: {}
+Tertis prog total_lines: {},
+Tertis prog figure_passed: {},
+Tertis prog figure_passed_lvl: {},
+Tertis diff level_number: {},
+Tertis diff figure_to_win: {},
+Tertis diff lose_line: {},
+)", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
+    diff.level_number, diff.figure_to_win, diff.lose_line);
+
+    draw_string(str, 0, 0, 0xFFFFFF);
+    mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 }

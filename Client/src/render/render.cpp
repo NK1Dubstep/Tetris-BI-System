@@ -7,22 +7,24 @@
 
 #include "./tetris/tetris.hpp"
 #include "render.hpp"
+#define FONT8x16_IMPLEMENTATION
+#include "font8x16.h"
 
 namespace tetris_bi {
   std::vector<uint32_t>& render::get_buffer() {
-    return m_buffer;
+    return buffer;
   }
 
   void render::draw_rectangle(const uint32_t x1, const uint32_t y1,
     const uint32_t x2, const uint32_t y2, const uint32_t color) {
-    uint32_t x1_clamped = std::min(x1, m_W - 1);
-    uint32_t y1_clamped = std::min(y1, m_H - 1);
-    uint32_t x2_clamped = std::min(x2, m_W - 1);
-    uint32_t y2_clamped = std::min(y2, m_H - 1);
+    uint32_t x1_clamped = std::min(x1, width - 1);
+    uint32_t y1_clamped = std::min(y1, height - 1);
+    uint32_t x2_clamped = std::min(x2, width - 1);
+    uint32_t y2_clamped = std::min(y2, height - 1);
 
     for (uint32_t y = y1_clamped; y <= y2_clamped; y++) {
       for (uint32_t x = x1_clamped; x <= x2_clamped; x++) {
-        m_buffer[y * m_W + x] = color;
+        buffer[y * width + x] = color;
       }
     }
   }
@@ -32,11 +34,49 @@ namespace tetris_bi {
     draw_rectangle(x1, y1, x1 + size, y1 + size, color);
   }
 
+  void render::draw_char(const char c, const uint32_t x1, const uint32_t y1, uint32_t color) {
+    const uint32_t x1_upto = std::min(x1 + FONT_W, width);
+    const uint32_t y1_upto = std::min(y1 + FONT_H, height);
+
+    auto font = font8x16;
+
+    const size_t idx = static_cast<uint8_t>(c);
+
+    for (int y = y1; y < y1_upto; y++) {
+      auto dy = y - y1;
+      uint32_t row = 0;
+      int bytes_per_row = (FONT_W + 7) / 8;
+      for (int b = 0; b < bytes_per_row; b++) {
+        row = (row << 8) | font[idx][dy * bytes_per_row + b];
+      }
+      uint8_t str = font[idx][dy];
+      for (int x = x1; x < x1_upto; x++) {
+        auto dx = x - x1;
+        if (str & (1 << (FONT_W - 1 - dx))) {
+          buffer[y * width + x] = color;
+        }
+      }
+    }
+  }
+
+  void render::draw_string(const std::string &s, const uint32_t x1, const uint32_t y1, const uint32_t color) {
+    int dx = 0, dy = 0;
+    for (auto c : s) {
+      if (c == '\n') {
+        dx = 0;
+        dy += FONT_H;
+        continue;
+      }
+      draw_char(c, x1 + dx, y1 + dy, color);
+      dx += FONT_W;
+    }
+  }
+
   void render::resize(const uint32_t W, const uint32_t H) {
-    std::fill(m_buffer.data(), m_buffer.data() + m_W * m_H, 0);
-    m_W = W;
-    m_H = H;
-    m_buffer.resize(W * H, 0);
+    std::fill(buffer.begin(), buffer.end(), 0);
+    width = W;
+    height = H;
+    buffer.resize(W * H, 0);
   }
 
   [[nodiscard]] uint32_t render::get_color(int val) const {
@@ -61,15 +101,15 @@ namespace tetris_bi {
   }
 
   void render::render_tetris(const tetris_field& field) {
-    std::fill(m_buffer.data(), m_buffer.data() + m_W * m_H, 0);
+    std::fill(buffer.data(), buffer.data() + width * height, 0);
 
     uint32_t cell_size = 20;
 
     uint32_t field_w = field.get_width();
     uint32_t field_h = field.get_height();
 
-    uint32_t offsetX = (m_W - field_w * cell_size) / 2;
-    uint32_t offsetY = (m_H - field_h * cell_size) / 2;
+    uint32_t offsetX = (width - field_w * cell_size) / 2;
+    uint32_t offsetY = (height - field_h * cell_size) / 2;
 
     for (uint32_t y = 0; y < field_h; y++) {
       for (uint32_t x = 0; x < field_w; x++) {

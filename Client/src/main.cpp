@@ -14,13 +14,11 @@
 #include "tetris/net/net.hpp"
 
 int main() {
-  // auto &x = tetris_bi::net::get();
+  // tetris_bi::super_tetris_window stw;
+  // stw.run();
 
-  // auto id = tetris_bi::net::login();
-
-  tetris_bi::super_tetris_window tw;
+  tetris_bi::tetris_game game;
+  tetris_bi::tetris_window tw;
+  tw.link_tetris(game);
   tw.run();
-
-  // tetris_bi::super_tetris_window tw;
-  // tw.run();
 }

@@ -11,7 +11,7 @@
 namespace tetris_bi {
   class render {
   public:
-    render(const uint32_t W, const uint32_t H) : m_W(W), m_H(H), m_buffer(W* H, 0) {}
+    render(const uint32_t W, const uint32_t H) : width(W), height(H), buffer(W * H, 0) {}
 
     std::vector<uint32_t>& get_buffer();
 
@@ -25,9 +25,14 @@ namespace tetris_bi {
 
     [[nodiscard]] uint32_t get_color(int value) const;
     void render_tetris(const tetris_field& field);
+
+    void draw_char(char c, uint32_t x1, uint32_t y1, uint32_t color);
+    void draw_string(const std::string &s, uint32_t x1, uint32_t y1, uint32_t color);
+
   private:
-    uint32_t m_W;
-    uint32_t m_H;
-    std::vector<uint32_t> m_buffer;
+    static const uint32_t FONT_W = 8, FONT_H = 16;
+    uint32_t width;
+    uint32_t height;
+    std::vector<uint32_t> buffer;
   };
 }
