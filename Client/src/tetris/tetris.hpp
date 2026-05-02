@@ -130,9 +130,8 @@ namespace tetris_bi {
       int figure_to_win{10};
       uint32_t lose_line{2};
     };
-  private:
     session_diff diff;
-
+  private:
     state st{state::IDLE};
 
     tetris_field tetris_field;
