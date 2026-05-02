@@ -11,8 +11,13 @@
   <div id="stats">
     <p>Total points: <span id="total_points">0</span></p>
     <p>Last CCU: <span id="last_ccu">0</span></p>
+    <p>Total sessions: <span id="total_sessions">0</span></p>
+    <p>Wins: <span id="wins">0</span></p>
+    <p>Losses: <span id="losses">0</span></p>
   </div>
   <canvas id="ccuChart" width="800" height="400"></canvas>
+  <canvas id="retentionChart" width="800" height="400"></canvas>
+  <canvas id="streaksChart" width="600" height="400"></canvas>
 
   <script>
     let chart;
@@ -20,7 +25,7 @@
     async function fetchData() {
       try {
         const response = await fetch('/tetris_bi/get_ccu_data?limit=100');
-        console.log(response)
+        console.log(response);
         const data = await response.json();
 
         document.getElementById('total_points').textContent = data.total_points;
@@ -88,6 +93,138 @@
         console.error('Error fetching data:', error);
       }
     }
+
+    async function fetchTotalSessions() {
+      try {
+        const res = await fetch('/tetris_bi/total_sessions');
+        const data = await res.json();
+        document.getElementById('total_sessions').textContent = data.total;
+      } catch (error) {
+        console.error('Error fetching total sessions:', error);
+      }
+    }
+
+    async function fetchWinsLosses() {
+      try {
+        const res = await fetch('/tetris_bi/wins_losses');
+        const data = await res.json();
+        document.getElementById('wins').textContent = data.wins;
+        document.getElementById('losses').textContent = data.losses;
+      } catch (error) {
+        console.error('Error fetching wins & losses:', error);
+      }
+    }
+
+    let retentionChart;
+
+    async function loadRetention() {
+        // Настройки (можно вынести в отдельные input)
+        const bucketSeconds = 20;   // интервал в секундах
+        const numBuckets = 10;      // количество интервалов
+
+        try {
+            const response = await fetch(`/tetris_bi/rolling_retention_seconds?bucket_seconds=${bucketSeconds}&num_buckets=${numBuckets}`);
+            const data = await response.json();
+
+            const labels = data.map(item => item.bucket);
+            const values = data.map(item => item.retention_pct);
+
+            if (retentionChart) {
+                retentionChart.data.labels = labels;
+                retentionChart.data.datasets[0].data = values;
+                retentionChart.update();
+            } else {
+                const ctx = document.getElementById('retentionChart').getContext('2d');
+                retentionChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Retention (%)',
+                            data: values,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                            tension: 0
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Retention (%)' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Номер интервала' }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Error loading retention:', err);
+        }
+    }
+
+    let streaksChart;
+
+    async function fetchStreaksStats() {
+      try {
+        const response = await fetch('/tetris_bi/streaks_stats');
+        const data = await response.json();
+
+        const labels = ['Максимальная', 'Медианная', 'Средняя'];
+        const values = [data.max, data.median, data.avg];
+
+        if (streaksChart) {
+          streaksChart.data.datasets[0].data = values;
+          streaksChart.update();
+        } else {
+          const ctx = document.getElementById('streaksChart').getContext('2d');
+          streaksChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Количество побед подряд',
+                data: values,
+                backgroundColor: ['#e74c3c', '#f39c12', '#2ecc71'],
+                borderColor: '#34495e',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: 'Побед в серии' }
+                },
+                x: {
+                  title: { display: true, text: 'Тип серии' }
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Ошибка получения статистики серий:', error);
+      }
+    }
+
+    fetchStreaksStats();
+    setInterval(fetchStreaksStats, 10000);
+
+    loadRetention();
+    setInterval(loadRetention, 10000);
+
+    fetchTotalSessions();
+    setInterval(fetchTotalSessions, 5000);
+    
+    fetchWinsLosses();
+    setInterval(fetchWinsLosses, 5000);
 
     fetchData();
     setInterval(fetchData, 5000);

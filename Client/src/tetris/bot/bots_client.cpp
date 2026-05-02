@@ -14,7 +14,7 @@ namespace tetris_bi {
 
   namespace {
     auto generate_random_idle_exit() {
-      return generate_randui32() % 10;
+      return generate_randui32() % 5;
     }
 
     auto generate_random_session_exit() {
@@ -64,6 +64,7 @@ namespace tetris_bi {
           }
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
+          bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
         } else {
           bot.in_idle += dt;
         }
@@ -75,6 +76,7 @@ namespace tetris_bi {
         if (bot.prev_state == tetris_game::state::IDLE) {
           if (bot.id.has_value()) {
             is_playing_tetris_updates.push_back(is_playing_tetris_update{bot.id.value(), true});
+            played_sessions += 1;
           }
           bot.session_exit = generate_random_session_exit();
           bot.in_session = 0;
@@ -108,8 +110,40 @@ namespace tetris_bi {
       for (auto &[id, value] : is_playing_tetris_updates) {
         arr.push_back({{"id", id}, {"value", value}});
       }
-      ws.send(nlohmann::json{{"type", "set_is_playing_tetris_batch"}, {"data", arr}}.dump());
+      ws.send(nlohmann::json{
+        {"type", "set_is_playing_tetris_batch"},
+        {"data", arr}
+        }.dump());
       is_playing_tetris_updates.clear();
+
+      ws.send(nlohmann::json{
+        {"type", "increase_number_of_sessions"},
+        {"data", played_sessions}
+        }.dump());
+      played_sessions = 0;
+
+      nlohmann::json arr_wl = nlohmann::json::array();
+      auto& vec_wl = arr_wl.get_ref<nlohmann::json::array_t&>();
+      vec_wl.reserve(bots.size());
+      for (auto& bot : bots) {
+        if (bot.id.has_value()) {
+          bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
+          arr_wl.push_back({
+            {"id", bot.id},
+            {"wins", bot.game.meta.wins - bot.wins},
+            {"losses", bot.game.meta.losses - bot.losses},
+            {"max_streak", bot.max_streak}
+            });
+        }
+        bot.wins = bot.game.meta.wins;
+        bot.losses = bot.game.meta.losses;
+        bot.max_streak = 0;
+      }
+      ws.send(nlohmann::json{
+        {"type", "update_metrics"},
+        {"data", arr_wl}
+        }.dump());
+
       last_iptu_send_time = tim.time;
     }
   }

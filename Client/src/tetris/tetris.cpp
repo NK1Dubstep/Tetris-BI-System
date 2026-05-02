@@ -29,10 +29,13 @@ namespace tetris_bi {
     generate_new_figure(next_figure);
   }
 
-  void tetris_game::end_session() noexcept {
+  void tetris_game::end_session(bool is_lose) noexcept {
     if (st == state::SESSION) {
       played_sessions_stats.push_back({prog, diff});
       st = state::IDLE;
+      if (is_lose) {
+        meta.losses++;
+      }
     }
   }
 
@@ -200,6 +203,8 @@ namespace tetris_bi {
     diff.figure_to_win++;
     prog.figure_passed_lvl = 0;
 
+    meta.wins++;
+
     if (diff.level_number % 2 == 0) {
       diff.lose_line = std::min(diff.lose_line + 1, tetris_field.get_height() - 5);
     }
@@ -230,7 +235,7 @@ namespace tetris_bi {
 
       if (check_for_lose()) {
         // std::cout << "you lose:(\n";
-        end_session();
+        end_session(true);
         return;
       }
 
@@ -242,7 +247,7 @@ namespace tetris_bi {
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.35;
+    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.001;
 
     if (st == state::SESSION) {
       from_last_tick += delta_time;

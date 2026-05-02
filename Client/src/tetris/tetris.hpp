@@ -58,7 +58,7 @@ namespace tetris_bi {
     void update(timer::seconds delta_time);
 
     void start_session() noexcept;
-    void end_session() noexcept;
+    void end_session(bool is_lose = false) noexcept;
 
     enum class state : short {
       IDLE, SESSION
@@ -106,7 +106,6 @@ namespace tetris_bi {
     bool check_for_lose() const;
 
     void go_next_level();
-    
 
     std::vector<tetris_shape> shapes_presets;
     std::vector<shape_type> shapes_types_presets;
@@ -122,12 +121,13 @@ namespace tetris_bi {
     } prog;
 
     // difficulty
+  public:
     struct session_diff {
       uint32_t level_number{1};
-      int figure_to_win{50};
+      int figure_to_win{10};
       uint32_t lose_line{2};
     } diff;
-
+  private:
     state st{state::IDLE};
 
     tetris_field tetris_field;
@@ -141,6 +141,11 @@ namespace tetris_bi {
       session_prog prog;
       session_diff diff;
     };
+
+    struct metrics {
+      int wins{0};
+      int losses{0};
+    } meta;
 
   private:
     std::vector<session_stats> played_sessions_stats;
