@@ -3,11 +3,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Tetris BI - CCU Dashboard</title>
+  <title>Tetris BI - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <h1>Tetris BI - CCU Dashboard</h1>
+  <h1>Tetris BI - Dashboard</h1>
   <div id="stats">
     <p>Total points: <span id="total_points">0</span></p>
     <p>Last CCU: <span id="last_ccu">0</span></p>
@@ -118,53 +118,53 @@
     let retentionChart;
 
     async function loadRetention() {
-        // Настройки (можно вынести в отдельные input)
-        const bucketSeconds = 20;   // интервал в секундах
-        const numBuckets = 10;      // количество интервалов
+      // Настройки (можно вынести в отдельные input)
+      const bucketSeconds = 20;   // интервал в секундах
+      const numBuckets = 10;      // количество интервалов
 
-        try {
-            const response = await fetch(`/tetris_bi/rolling_retention_seconds?bucket_seconds=${bucketSeconds}&num_buckets=${numBuckets}`);
-            const data = await response.json();
+      try {
+        const response = await fetch(`/tetris_bi/rolling_retention_seconds?bucket_seconds=${bucketSeconds}&num_buckets=${numBuckets}`);
+        const data = await response.json();
 
-            const labels = data.map(item => item.bucket);
-            const values = data.map(item => item.retention_pct);
+        const labels = data.map(item => item.bucket);
+        const values = data.map(item => item.retention_pct);
 
-            if (retentionChart) {
-                retentionChart.data.labels = labels;
-                retentionChart.data.datasets[0].data = values;
-                retentionChart.update();
-            } else {
-                const ctx = document.getElementById('retentionChart').getContext('2d');
-                retentionChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Retention (%)',
-                            data: values,
-                            borderColor: 'rgb(255, 99, 132)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true,
-                            tension: 0
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: { display: true, text: 'Retention (%)' }
-                            },
-                            x: {
-                                title: { display: true, text: 'Номер интервала' }
-                            }
-                        }
-                    }
-                });
+        if (retentionChart) {
+          retentionChart.data.labels = labels;
+          retentionChart.data.datasets[0].data = values;
+          retentionChart.update();
+        } else {
+          const ctx = document.getElementById('retentionChart').getContext('2d');
+          retentionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Retention (%)',
+                data: values,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+                tension: 0
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: { display: true, text: 'Retention (%)' }
+                },
+                x: {
+                  title: { display: true, text: 'Номер интервала' }
+                }
+              }
             }
-        } catch (err) {
-            console.error('Error loading retention:', err);
+          });
         }
+      } catch (err) {
+        console.error('Error loading retention:', err);
+      }
     }
 
     let streaksChart;
@@ -222,7 +222,7 @@
 
     fetchTotalSessions();
     setInterval(fetchTotalSessions, 5000);
-    
+
     fetchWinsLosses();
     setInterval(fetchWinsLosses, 5000);
 

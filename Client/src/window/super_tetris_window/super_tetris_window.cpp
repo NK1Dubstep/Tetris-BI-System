@@ -101,7 +101,32 @@ namespace tetris_bi {
   void super_tetris_window::my_frame() {
     tim.update();
     bsc.update();
-    render_tetris(bsc.bots[draw_index].game.get_tetris_field());
+
+    std::lock_guard(bsc.bots_mutex);
+    auto &target_tetris = bsc.bots[draw_index].game;
+
+    render_tetris(target_tetris.get_tetris_field());
+    auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
+
+    auto str1 = R"(Nk1 av1 super tertis)";
+    auto str2 = std::format(R"(Bot index: {})", draw_index);
+    auto str3 = std::format(R"(Total bots: {})", BOT_NUMBER);
+    auto str4 = std::format(
+      R"(Tertis prog score: {}
+Tertis prog total_lines: {},
+Tertis prog figure_passed: {},
+Tertis prog figure_passed_lvl: {},
+Tertis diff level_number: {},
+Tertis diff figure_to_win: {},
+Tertis diff lose_line: {},
+)", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
+    diff.level_number, diff.figure_to_win, diff.lose_line);
+
+    draw_string(str1, 0, 0, 0x834d18);
+    draw_string(str3, 0, 16, 0x006600);
+    draw_string(str2, 0, 32, 0x660066);
+    draw_string(str4, 0, 48, 0x666666);
+
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 }

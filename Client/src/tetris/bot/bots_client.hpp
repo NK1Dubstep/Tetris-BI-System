@@ -15,6 +15,7 @@
 #include "utils/random.hpp"
 
 #include <queue>
+#include <unordered_map>
 
 namespace tetris_bi {
   class bots_client {
@@ -42,13 +43,8 @@ namespace tetris_bi {
       int max_streak{0};
     };
 
-    struct is_playing_tetris_update {
-      uint32_t id;
-      bool value;
-    };
-
-    std::vector<is_playing_tetris_update> is_playing_tetris_updates;
-    timer::seconds last_iptu_send_time;
+    std::unordered_map<uint32_t, bool> is_playing_tetris_updates;
+    timer::seconds last_send_time;
 
     uint32_t played_sessions = 0;
 
@@ -57,13 +53,12 @@ namespace tetris_bi {
 
     void connect();
 
-    void bot_register(int i);
     void bots_register();
     std::atomic<bool> register_finished{false};
-    void set_is_playing_tetris(bot &bt, bool b);
 
     timer tim;
     std::vector<bot> bots;
     std::mutex bots_mutex;
   };
 }
+

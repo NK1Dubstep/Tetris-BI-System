@@ -16,7 +16,8 @@ set(SOURCES
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
   src/tetris/bot/bots_client.cpp
-  src/tetris/net/net.cpp
+  src/utils/net.cpp
+  src/utils/audio.cpp
 )
 
 set(MINIFB_BUILD_EXAMPLES OFF CACHE BOOL "")
@@ -47,6 +48,7 @@ target_include_directories(${TARGET_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/ixwebsocket
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/httplib
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/miniaudio
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/
   ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -93,5 +95,7 @@ endif()
 set_target_properties(${TARGET_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/bin" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 message(STATUS "Minifb from: ${CMAKE_CURRENT_SOURCE_DIR}/minifb")

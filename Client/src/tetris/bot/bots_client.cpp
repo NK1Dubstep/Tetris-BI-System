@@ -30,9 +30,8 @@ namespace tetris_bi {
       bot.session_exit = generate_random_session_exit();
     }
     connect();
-    bots_register();
     is_playing_tetris_updates.reserve(n);
-    last_iptu_send_time = tim.time;
+    last_send_time = tim.time;
   }
 
   void bots_client::update() {
@@ -46,13 +45,6 @@ namespace tetris_bi {
 
     for (auto &bot : bots) {
       auto stats = bot.game.pop_last_played_session_stats();
-      // if (is_connected && bot.id.has_value() && stats.has_value()) {
-      //   nlohmann::json js = nlohmann::json{
-      //     {"type", "send_stats"},
-      //     {"session", {{"id", bot.id.value()}, {"figure_passed", stats->prog.figure_passed}}}
-      //   };
-      //   ws.send(js.dump());
-      // }
 
       tetris_game::state st;
       bot.game.update(dt);
@@ -60,7 +52,7 @@ namespace tetris_bi {
       if (st == tetris_game::state::IDLE) {
         if (bot.prev_state == tetris_game::state::SESSION) {
           if (bot.id.has_value()) {
-            is_playing_tetris_updates.push_back(is_playing_tetris_update{bot.id.value(), false});
+            is_playing_tetris_updates[bot.id.value()] = false;
           }
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
@@ -75,7 +67,7 @@ namespace tetris_bi {
       } else if (st == tetris_game::state::SESSION) {
         if (bot.prev_state == tetris_game::state::IDLE) {
           if (bot.id.has_value()) {
-            is_playing_tetris_updates.push_back(is_playing_tetris_update{bot.id.value(), true});
+            is_playing_tetris_updates[bot.id.value()] = true;
             played_sessions += 1;
           }
           bot.session_exit = generate_random_session_exit();
@@ -102,7 +94,7 @@ namespace tetris_bi {
       }
     }  // end of for
 
-    if (is_connected && tim.time - last_iptu_send_time > 1) {
+    if (is_connected && tim.time - last_send_time > 1) {
       nlohmann::json arr = nlohmann::json::array();
       auto &vec = arr.get_ref<nlohmann::json::array_t&>();
       vec.reserve(is_playing_tetris_updates.size());
@@ -144,34 +136,30 @@ namespace tetris_bi {
         {"data", arr_wl}
         }.dump());
 
-      last_iptu_send_time = tim.time;
+      last_send_time = tim.time;
     }
   }
 
   void bots_client::connect() {
-    ws.setUrl("ws://26.60.218.199:5837/ws");
+    ws.setUrl("ws://127.0.0.1:5837/ws");
 
     ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr &msg) {
       if (msg->type == ix::WebSocketMessageType::Open) {
         std::cout << "WebSocket connected!" << std::endl;
         is_connected = true;
+        bots_register();
       }
       else if (msg->type == ix::WebSocketMessageType::Close) {
         std::cout << "WebSocket closed" << std::endl;
         is_connected = false;
+        register_finished = false;
+        for (auto &b : bots) b = {};
       }
       else if (msg->type == ix::WebSocketMessageType::Message) {
         nlohmann::json js = nlohmann::json::parse(msg->str);
         std::string message = js["message"];
-        if (message == "register") {
 
-          auto id = js["id"];
-          auto bot_index = js["bot_index"];
-
-          std::lock_guard guard(bots_mutex);
-          bots[bot_index].id = id;
-        }
-        else if (message == "register_batch") {
+        if (message == "register_batch") {
           auto x = js["ids"];
 
           std::lock_guard guard(bots_mutex);
@@ -199,22 +187,9 @@ namespace tetris_bi {
     }
   }
 
-  void bots_client::bot_register(int i) {
-    if (is_connected) {
-      ws.send(R"({"type":"register", "bot_index": )" + std::to_string(i) + "}");
-    }
-  }
-
   void bots_client::bots_register() {
     if (is_connected) {
       ws.send(R"({"type":"register_batch", "number": )" + std::to_string(number) + "}");
-    }
-  }
-
-  void bots_client::set_is_playing_tetris(bot &bt, bool b) {
-    if (is_connected && bt.id.has_value()) {
-      ws.send(R"({"type":"set_is_playing_tetris", "id": )" + std::to_string(bt.id.value()) +
-        R"(, "value": )" + std::to_string(static_cast<int>(b)) + "}");
     }
   }
 }
