@@ -132,9 +132,9 @@ namespace tetris_bi {
 
     auto prog = m_tetris->get_prog(); auto diff = m_tetris->get_diff();
 
-    auto str = std::format(
-      R"(Nk1 av1 super tertis
-Tertis prog score: {}
+    auto str1 = std::format(R"(Nk1 av1 super tertis, FPS: {})", tim.fps);
+    auto str4 = std::format(
+      R"(Tertis prog score: {}
 Tertis prog total_lines: {},
 Tertis prog figure_passed: {},
 Tertis prog figure_passed_lvl: {},
@@ -144,7 +144,8 @@ Tertis diff lose_line: {},
 )", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
     diff.level_number, diff.figure_to_win, diff.lose_line);
 
-    draw_string(str, 0, 0, 0xFFFFFF);
+    draw_string(str1, 0, 0, 0x834d18);
+    draw_string(str4, 0, 48, 0x666666);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 }

@@ -108,7 +108,7 @@ namespace tetris_bi {
     render_tetris(target_tetris.get_tetris_field());
     auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
 
-    auto str1 = R"(Nk1 av1 super tertis)";
+    auto str1 = std::format(R"(Nk1 av1 super tertis, FPS: {})", tim.fps);
     auto str2 = std::format(R"(Bot index: {})", draw_index);
     auto str3 = std::format(R"(Total bots: {})", BOT_NUMBER);
     auto str4 = std::format(
