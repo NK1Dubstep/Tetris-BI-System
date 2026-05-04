@@ -1,3 +1,10 @@
+''' ==========[ TETRIS BI SYSTEM ]==========
+    * Copyright (c) 2026 Tetris-BI-System Contributors
+    * SPDX-License-Identifier: MIT
+    * Authors : -= Vysotin Artem =-, -= Nikita Koptelov =-
+    * Academic Director : Ilya Pshenichniy
+    * ====================================== '''
+
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
