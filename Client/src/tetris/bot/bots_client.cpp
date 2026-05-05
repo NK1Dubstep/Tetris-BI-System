@@ -24,72 +24,76 @@ namespace tetris_bi {
     }
   }
 
-  bots_client::bots_client(uint32_t bots_number) :
-    stats_sender{}, bots(bots_number), bots_number(bots_number)
+  bots_client::bots_client(uint32_t clever_bot_number, uint32_t dummy_bot_number) :
+    stats_sender{},
+    bots(clever_bot_number + dummy_bot_number),
+    bots_number(clever_bot_number + dummy_bot_number)
   {
+    int n = clever_bot_number + dummy_bot_number;
+    for (int i = 0; i < clever_bot_number; i++) {
+      bots[i] = std::make_unique<bot_200iq>();
+    }
+
+    for (int i = clever_bot_number; i < n; i++) {
+      bots[i] = std::make_unique<bot>();
+    }
+
     for (auto &bot : bots) {
-      bot.idle_exit = generate_random_idle_exit();
-      bot.session_exit = generate_random_session_exit();
+      bot->idle_exit = generate_random_idle_exit();
+      bot->session_exit = generate_random_session_exit();
     }
     connect(5);
   }
 
   void bots_client::update() {
-    if (!register_finished) {
-      return;
-    }
+    // if (!register_finished) {
+    //   return;
+    // }
     std::lock_guard guard(bots_mutex);
 
     tim.update();
     auto dt = tim.delta_time_p;
     auto t = tim.time_p;
 
-    for (auto &bot : bots) {
+    for (auto bot : bots) {
       tetris_game::state st;
-      bot.game.update(dt);
-      st = bot.game.get_state();
+      bot->game.update(dt);
+      st = bot->game.get_state();
 
       if (st == tetris_game::state::IDLE) {
-        if (bot.prev_state == tetris_game::state::SESSION) {
-          if (bot.id.has_value()) {
-            set_is_playing_tetris_update(bot.id.value(), false);
+        if (bot->prev_state == tetris_game::state::SESSION) {
+          if (bot->id.has_value()) {
+            set_is_playing_tetris_update(bot->id.value(), false);
           }
           increase_sessions();
-          bot.idle_exit = generate_random_idle_exit();
-          bot.in_idle = 0;
+          bot->idle_exit = generate_random_idle_exit();
+          bot->in_idle = 0;
         } else {
-          bot.in_idle += dt;
+          bot->in_idle += dt;
         }
-        if (bot.in_idle > bot.idle_exit) {
-          bot.game.start_session();
+        if (bot->in_idle > bot->idle_exit) {
+          bot->game.start_session();
         }
-        bot.prev_state = tetris_game::state::IDLE;
+        bot->prev_state = tetris_game::state::IDLE;
       } else if (st == tetris_game::state::SESSION) {
-        if (bot.prev_state == tetris_game::state::IDLE) {
-          if (bot.id.has_value()) {
-            set_is_playing_tetris_update(bot.id.value(), true);
+        if (bot->prev_state == tetris_game::state::IDLE) {
+          if (bot->id.has_value()) {
+            set_is_playing_tetris_update(bot->id.value(), true);
           }
-          bot.session_exit = generate_random_session_exit();
-          bot.in_session = 0;
-          bot.last_tick = 0;
+          bot->session_exit = generate_random_session_exit();
+          bot->in_session = 0;
+          bot->last_tick = 0;
         } else {
-          bot.in_session += dt;
-          bot.last_tick += dt;
+          bot->in_session += dt;
+          bot->last_tick += dt;
         }
-        if (bot.in_session > bot.session_exit) {
-          bot.game.end_session();
-        } else if (bot.last_tick > bot.TICK_INTERVAL) {
-          uint32_t move_id = generate_randui32() % 5;
-          switch (move_id) {
-            case 0: bot.game.move_direction(1); break;
-            case 1: bot.game.move_direction(-1); break;
-            case 2: bot.game.rotateCW(); break;
-            case 3: bot.game.rotateCCW(); break;
-            default: break;
-          }
-          bot.last_tick = 0;
+        if (bot->in_session > bot->session_exit) {
+          bot->game.end_session();
+        } else if (bot->last_tick > bot->TICK_INTERVAL) {
+          bot->make_move();
+          bot->last_tick = 0;
         }
-        bot.prev_state = tetris_game::state::SESSION;
+        bot->prev_state = tetris_game::state::SESSION;
       }
     }  // end of for on bots
 
@@ -113,7 +117,7 @@ namespace tetris_bi {
 
       std::lock_guard guard(bots_mutex);
       for (int i = 0; i < bots_number; i++) {
-        bots[i].id = x[i];
+        bots[i]->id = x[i];
       }
       register_finished = true;
     }

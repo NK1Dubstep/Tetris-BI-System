@@ -31,9 +31,11 @@ namespace tetris_bi {
 
     void my_frame() override;
 
+    static const int SMART_BOT_NUMBER;
+    static const int DUMMY_BOT_NUMBER;
     static const int BOT_NUMBER;
 
-    bots_client bsc = bots_client(BOT_NUMBER);
+    bots_client bsc = bots_client(SMART_BOT_NUMBER, DUMMY_BOT_NUMBER);
     timer tim;
     int draw_index{0};
   };

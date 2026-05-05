@@ -91,9 +91,25 @@ namespace tetris_bi {
     };
 
     [[nodiscard]] bool check_current_shape(const int x, const int y) const;
+  public:
+    tetris_figure get_current_figure() const {
+      return current_figure;
+    }
+
+    int get_current_figure_high() const {
+      int h = 1e9;
+      for (auto& p : current_figure.points) {
+        if (p.y < h) h = p.y;
+      }
+      return h;
+    }
+  private:
 
     [[nodiscard]] bool check_down() const;
     void move_down();
+  public:
+    void drop();
+  private:
 
     [[nodiscard]] bool check_direction(int dir) const;
 
