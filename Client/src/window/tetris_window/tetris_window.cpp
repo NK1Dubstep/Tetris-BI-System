@@ -23,6 +23,7 @@ namespace tetris_bi {
   {
     // render::draw_rectangle(0, 0, 100, 100, 0x834d18);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
+    stats_sender::connect(2);
   }
 
   void tetris_window::my_active(
@@ -63,27 +64,27 @@ namespace tetris_bi {
 
     if (is_pressed) {
       if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_S) {
-        m_tetris->start_session();
+        game.start_session();
         return;
       }
 
       if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_E) {
-        m_tetris->end_session();
+        game.end_session();
         return;
       }
 
       switch (key) {
         case mfb_key::KB_KEY_A:
-          m_tetris->move_direction(-1);
+          game.move_direction(-1);
           break;
         case mfb_key::KB_KEY_D:
-          m_tetris->move_direction(1);
+          game.move_direction(1);
           break;
         case mfb_key::KB_KEY_S:
-          m_tetris->rotateCW();
+          game.rotateCW();
           break;
         case mfb_key::KB_KEY_W:
-          m_tetris->rotateCCW();
+          game.rotateCCW();
           break;
         case mfb_key::KB_KEY_P:
           tim.pause_switch();
@@ -129,10 +130,37 @@ namespace tetris_bi {
 
   void tetris_window::my_frame() {
     tim.update();
-    m_tetris->update(tim.delta_time_p);
-    render_tetris(m_tetris->get_tetris_field());
 
-    auto prog = m_tetris->get_prog(); auto diff = m_tetris->get_diff();
+    auto dt = tim.delta_time_p;
+    auto t = tim.time_p;
+
+    game.update(dt);
+
+    tetris_game::state st{game.get_state()};
+
+    if (st == tetris_game::state::IDLE) {
+      if (prev_state == tetris_game::state::SESSION) {
+        if (id.load().has_value()) {
+          set_is_playing_tetris_update(id.load().value(), false);
+        }
+        increase_sessions();
+        max_streak = max(max_streak, game.diff.level_number - 1);
+      }
+      prev_state = tetris_game::state::IDLE;
+    } else if (st == tetris_game::state::SESSION) {
+      if (prev_state == tetris_game::state::IDLE) {
+        if (id.load().has_value()) {
+          set_is_playing_tetris_update(id.load().has_value(), true);
+        }
+      }
+      prev_state = tetris_game::state::SESSION;
+    }
+
+    stats_sender::flush_update(t);
+
+    render_tetris(game.get_tetris_field());
+
+    auto prog = game.get_prog(); auto diff = game.get_diff();
 
     auto str1 = std::format(R"(Nk1 av1 super tertis, FPS: {})", tim.fps);
     auto str4 = std::format(
@@ -156,14 +184,33 @@ Tertis diff lose_line: {},
   }
 
   void tetris_window::ss_on_close() {
+    id = std::nullopt;
   }
 
   void tetris_window::ss_on_message(const nlohmann::json &data) {
+    std::string message = data["message"];
 
+    if (message == "register_batch") {
+      auto x = data["ids"];
+      id = x[0];
+    }
   }
 
   nlohmann::json tetris_window::ss_on_update_metrics() {
-    return nlohmann::json{};
+    nlohmann::json arr = nlohmann::json::array();
+
+    if (id.load().has_value()) {
+      tetris_game::metrics dmeta = game.get_meta_deltas();
+
+      arr.push_back({
+        {"id", id.load().value()},
+        {"wins", dmeta.wins},
+        {"losses", dmeta.losses},
+        {"max_streak", dmeta.max_streak}
+        });
+    }
+    game.save_meta_accum();
+    return arr;
   }
 
 }

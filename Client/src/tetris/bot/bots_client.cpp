@@ -45,8 +45,6 @@ namespace tetris_bi {
     auto t = tim.time_p;
 
     for (auto &bot : bots) {
-      auto stats = bot.game.pop_last_played_session_stats();
-
       tetris_game::state st;
       bot.game.update(dt);
       st = bot.game.get_state();
@@ -56,9 +54,9 @@ namespace tetris_bi {
           if (bot.id.has_value()) {
             set_is_playing_tetris_update(bot.id.value(), false);
           }
+          increase_sessions();
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
-          bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
         } else {
           bot.in_idle += dt;
         }
@@ -70,7 +68,6 @@ namespace tetris_bi {
         if (bot.prev_state == tetris_game::state::IDLE) {
           if (bot.id.has_value()) {
             set_is_playing_tetris_update(bot.id.value(), true);
-            increase_sessions();
           }
           bot.session_exit = generate_random_session_exit();
           bot.in_session = 0;
@@ -129,17 +126,16 @@ namespace tetris_bi {
 
     for (auto& bot : bots) {
       if (bot.id.has_value()) {
-        bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
+        tetris_game::metrics dmeta = bot.game.get_meta_deltas();
+
         arr.push_back({
           {"id", bot.id},
-          {"wins", bot.game.meta.wins - bot.wins},
-          {"losses", bot.game.meta.losses - bot.losses},
-          {"max_streak", bot.max_streak}
+          {"wins", dmeta.wins},
+          {"losses", dmeta.losses},
+          {"max_streak", dmeta.max_streak}
           });
       }
-      bot.wins = bot.game.meta.wins;
-      bot.losses = bot.game.meta.losses;
-      bot.max_streak = 0;
+      bot.game.save_meta_accum();
     }
     return arr;
   }

@@ -41,9 +41,6 @@ namespace tetris_bi {
       timer::seconds session_exit, idle_exit;
       timer::seconds last_tick{0};
       static constexpr timer::seconds TICK_INTERVAL{0.1};
-      int wins{0};
-      int losses{0};
-      int max_streak{0};
     };
 
     std::atomic<bool> register_finished{false};

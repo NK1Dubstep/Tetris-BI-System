@@ -33,7 +33,6 @@ namespace tetris_bi {
 
   void tetris_game::end_session(bool is_lose) noexcept {
     if (st == state::SESSION) {
-      played_sessions_stats.push_back({prog, diff});
       st = state::IDLE;
       if (is_lose) {
         meta.losses++;
@@ -202,6 +201,7 @@ namespace tetris_bi {
 
   void tetris_game::go_next_level() {
     diff.level_number++;
+    meta.max_streak = std::max(meta.max_streak, diff.level_number - 1);
     diff.figure_to_win++;
     prog.figure_passed_lvl = 0;
 
@@ -249,7 +249,7 @@ namespace tetris_bi {
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.001;
+    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.0367;
 
     if (st == state::SESSION) {
       from_last_tick += delta_time;
@@ -264,16 +264,5 @@ namespace tetris_bi {
 
   [[nodiscard]] tetris_game::state tetris_game::get_state() noexcept {
     return st;
-  }
-
-  std::optional<tetris_game::session_stats>
-    tetris_game::pop_last_played_session_stats() {
-
-    if (played_sessions_stats.empty()) {
-      return std::nullopt;
-    }
-    auto stats = played_sessions_stats.back();
-    played_sessions_stats.pop_back();
-    return stats;
   }
 }
