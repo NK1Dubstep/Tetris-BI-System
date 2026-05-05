@@ -32,7 +32,7 @@ namespace tetris_bi {
     void update();
 
   private:
-    int bots_number;
+    int bots_number{0};
 
     struct bot {
       bot() = default;
@@ -45,7 +45,7 @@ namespace tetris_bi {
       tetris_game::state prev_state{tetris_game::state::IDLE};
       timer::seconds in_session{0};
       timer::seconds in_idle{0};
-      timer::seconds session_exit, idle_exit;
+      timer::seconds session_exit{1}, idle_exit{1};
       timer::seconds last_tick{0};
       timer::seconds TICK_INTERVAL{0.1};
 

@@ -47,8 +47,11 @@ namespace tetris_bi {
     int best_r = 0;
     int best_m = 0;
 
-    for (int curr_r = 0; curr_r < 4; curr_r++) {
-      for (int curr_m = -5; curr_m <= 5; curr_m++) {
+    static constexpr uint32_t ROTATE_NUMBER = 4;
+    const int half_width = (imaginary_game.get_tetris_field().get_width() + 1) / 2;
+
+    for (int curr_r = 0; curr_r < ROTATE_NUMBER; curr_r++) {
+      for (int curr_m = -half_width; curr_m <= half_width; curr_m++) {
         for (int i = 0; i < curr_r; i++) imaginary_game.rotateCW();
 
         if (curr_m != 0) {

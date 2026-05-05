@@ -145,7 +145,7 @@ namespace tetris_bi {
   public:
     struct session_diff {
       uint32_t level_number{1};
-      int figure_to_win{10};
+      int figure_to_win{INT32_MAX};
       uint32_t lose_line{2};
     };
     session_diff diff;

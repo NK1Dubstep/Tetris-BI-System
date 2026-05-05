@@ -55,7 +55,7 @@ namespace tetris_bi {
     auto dt = tim.delta_time_p;
     auto t = tim.time_p;
 
-    for (auto bot : bots) {
+    for (auto &bot : bots) {
       tetris_game::state st;
       bot->game.update(dt);
       st = bot->game.get_state();
@@ -128,18 +128,18 @@ namespace tetris_bi {
     auto &vec = arr.get_ref<nlohmann::json::array_t&>();
     vec.reserve(bots.size());
 
-    for (auto& bot : bots) {
-      if (bot.id.has_value()) {
-        tetris_game::metrics dmeta = bot.game.get_meta_deltas();
+    for (auto &bot : bots) {
+      if (bot->id.has_value()) {
+        tetris_game::metrics dmeta = bot->game.get_meta_deltas();
 
         arr.push_back({
-          {"id", bot.id},
+          {"id", bot->id.value()},
           {"wins", dmeta.wins},
           {"losses", dmeta.losses},
           {"max_streak", dmeta.max_streak}
           });
       }
-      bot.game.save_meta_accum();
+      bot->game.save_meta_accum();
     }
     return arr;
   }
