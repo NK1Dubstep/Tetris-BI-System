@@ -51,19 +51,19 @@ namespace tetris_bi {
       case ix::WebSocketMessageType::Open: {
         std::cout << "Stats sender: WebSocket connected!" << std::endl;
         is_connected = true;
-        on_open();
+        ss_on_open();
         break;
       }
       case ix::WebSocketMessageType::Close: {
         std::cout << "Stats sender: WebSocket closed" << std::endl;
         is_connected = false;
-        on_close();
+        ss_on_close();
         break;
       }
       case ix::WebSocketMessageType::Message: {
         try {
           nlohmann::json data = nlohmann::json::parse(msg->str);
-          on_message(data);
+          ss_on_message(data);
         } catch (const nlohmann::json::parse_error &e) {
           std::cerr << "Stats sender: JSON parse error: " << e.what() << '\n';
         }
@@ -118,7 +118,7 @@ namespace tetris_bi {
       for (auto &[id, value] : is_playing_tetris_updates) {
         arr1.push_back({{"id", id}, {"value", value}});
       }
-      nlohmann::json arr2 = on_update_metrics();
+      nlohmann::json arr2 = ss_on_update_metrics();
 
       // set_is_playing_tetris_batch
       send_json(nlohmann::json{

@@ -10,9 +10,10 @@
 #include "window/window.hpp"
 #include "render/render.hpp"
 #include "tetris/tetris.hpp"
+#include "tetris/stats_sender/stats_sender.hpp"
 
 namespace tetris_bi {
-  class tetris_window : public window, public render {
+  class tetris_window : public window, public render, private stats_sender {
   public:
     tetris_window();
 
@@ -34,5 +35,10 @@ namespace tetris_bi {
 
     timer tim;  // mega timer
     tetris_game* m_tetris = nullptr;
+
+    void ss_on_open() override;
+    void ss_on_close() override;
+    void ss_on_message(const nlohmann::json &data) override;
+    nlohmann::json ss_on_update_metrics() override;
   };
 }

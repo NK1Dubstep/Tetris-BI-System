@@ -150,4 +150,20 @@ Tertis diff lose_line: {},
     draw_string(str4, 0, 48, 0x666666);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
+
+  void tetris_window::ss_on_open() {
+    register_batch(1);
+  }
+
+  void tetris_window::ss_on_close() {
+  }
+
+  void tetris_window::ss_on_message(const nlohmann::json &data) {
+
+  }
+
+  nlohmann::json tetris_window::ss_on_update_metrics() {
+    return nlohmann::json{};
+  }
+
 }
