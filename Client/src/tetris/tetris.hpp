@@ -159,28 +159,36 @@ namespace tetris_bi {
     timer::seconds from_last_tick{0};
 
   public:
-    struct session_stats {
-      session_prog prog;
-      session_diff diff;
+    struct metrics {
+      uint32_t wins{0};
+      uint32_t losses{0};
+      uint32_t max_streak{0};
     };
 
-    struct metrics {
-      int wins{0};
-      int losses{0};
-    } meta;
-
   private:
-    std::vector<session_stats> played_sessions_stats;
+    metrics meta, meta_accum;
 
   public:
-    std::optional<session_stats> pop_last_played_session_stats();
-
     [[nodiscard]] session_prog get_prog() const noexcept {
       return prog;
     }
 
     [[nodiscard]] session_diff get_diff() const noexcept {
       return diff;
+    }
+
+    void save_meta_accum() {
+      meta_accum = meta;
+    }
+
+    metrics get_meta_deltas() {
+      return
+      metrics
+      {
+        .wins = meta.wins - meta_accum.wins,
+        .losses = meta.losses - meta_accum.losses,
+        .max_streak = meta.max_streak
+      };
     }
   };
 }

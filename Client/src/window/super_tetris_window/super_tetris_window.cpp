@@ -106,7 +106,7 @@ namespace tetris_bi {
     tim.update();
     bsc.update();
 
-    std::lock_guard(bsc.bots_mutex);
+    std::lock_guard guard(bsc.bots_mutex);
     auto &target_tetris = bsc.bots[draw_index]->game;
 
     render_tetris(target_tetris.get_tetris_field());

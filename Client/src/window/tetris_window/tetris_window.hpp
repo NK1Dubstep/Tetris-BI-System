@@ -10,15 +10,13 @@
 #include "window/window.hpp"
 #include "render/render.hpp"
 #include "tetris/tetris.hpp"
+#include "tetris/stats_sender/stats_sender.hpp"
 
 namespace tetris_bi {
-  class tetris_window : public window, public render {
+  class tetris_window : public window, public render, private stats_sender {
   public:
     tetris_window();
-
-    void link_tetris(tetris_game& game) {
-      m_tetris = &game;
-    }
+    ~tetris_window() { disconnect(); };
 
   private:
     void my_active(mfb_window *, bool is_active) override;
@@ -33,6 +31,17 @@ namespace tetris_bi {
     void my_frame() override;
 
     timer tim;  // mega timer
-    tetris_game* m_tetris = nullptr;
+    tetris_game game;
+
+    std::atomic<std::optional<uint32_t>> id;
+    tetris_game::state prev_state{tetris_game::state::IDLE};
+    int wins{0};
+    int losses{0};
+    int max_streak{0};
+
+    void ss_on_open() override;
+    void ss_on_close() override;
+    void ss_on_message(const nlohmann::json &data) override;
+    nlohmann::json ss_on_update_metrics() override;
   };
 }

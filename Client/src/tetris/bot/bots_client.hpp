@@ -15,6 +15,7 @@
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "utils/random.hpp"
+#include "tetris/stats_sender/stats_sender.hpp"
 
 #include <queue>
 #include <unordered_map>
@@ -22,16 +23,16 @@
 #include <optional>
 
 namespace tetris_bi {
-  class bots_client {
+  class bots_client : private stats_sender {
     friend class super_tetris_window;
   public:
-    bots_client(int clever_bot_number, int dummy_bot_number);
-    ~bots_client() {ws.stop();}
-
+    bots_client(uint32_t clever_bot_number, uint32_t dummy_bot_number);
+    ~bots_client() { disconnect(); };
+    
     void update();
 
   private:
-    int number;
+    int bots_number;
 
     struct bot {
       bot() = default;
@@ -47,9 +48,6 @@ namespace tetris_bi {
       timer::seconds session_exit, idle_exit;
       timer::seconds last_tick{0};
       timer::seconds TICK_INTERVAL{0.1};
-      int wins{0};
-      int losses{0};
-      int max_streak{0};
 
       virtual void make_move() {
         uint32_t move_id = generate_randui32() % 5;
@@ -72,8 +70,6 @@ namespace tetris_bi {
       std::optional<int> best_rotate{std::nullopt};
       std::optional<int> best_move{std::nullopt};
       int curr_figure_passed = -1;
-      int delay = 1;
-
 
       int count_iso_cells(const tetris_game& game);
       int eval(const tetris_game& game);
@@ -81,22 +77,14 @@ namespace tetris_bi {
       void make_move() override;
     };
 
-    std::unordered_map<uint32_t, bool> is_playing_tetris_updates;
-    timer::seconds last_send_time;
-
-    uint32_t played_sessions = 0;
-
-    ix::WebSocket ws;
-    std::atomic<bool> is_connected;
-
-    void connect();
-
-    void bots_register();
     std::atomic<bool> register_finished{false};
-
-    timer tim;
     std::vector<std::unique_ptr<bot>> bots;
     std::mutex bots_mutex;
+    timer tim;
+
+    void ss_on_open() override;
+    void ss_on_close() override;
+    void ss_on_message(const nlohmann::json &data) override;
+    nlohmann::json ss_on_update_metrics() override;
   };
 }
-
