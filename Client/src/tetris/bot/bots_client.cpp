@@ -24,16 +24,14 @@ namespace tetris_bi {
     }
   }
 
-  bots_client::bots_client(int n) :
-    bots(n), number(n)
+  bots_client::bots_client(uint32_t bots_number) :
+    stats_sender{}, bots(bots_number), bots_number(bots_number)
   {
     for (auto &bot : bots) {
       bot.idle_exit = generate_random_idle_exit();
       bot.session_exit = generate_random_session_exit();
     }
-    connect();
-    is_playing_tetris_updates.reserve(n);
-    last_send_time = tim.time;
+    connect(5);
   }
 
   void bots_client::update() {
@@ -44,6 +42,7 @@ namespace tetris_bi {
 
     tim.update();
     auto dt = tim.delta_time_p;
+    auto t = tim.time_p;
 
     for (auto &bot : bots) {
       auto stats = bot.game.pop_last_played_session_stats();
@@ -51,10 +50,11 @@ namespace tetris_bi {
       tetris_game::state st;
       bot.game.update(dt);
       st = bot.game.get_state();
+
       if (st == tetris_game::state::IDLE) {
         if (bot.prev_state == tetris_game::state::SESSION) {
           if (bot.id.has_value()) {
-            is_playing_tetris_updates[bot.id.value()] = false;
+            set_is_playing_tetris_update(bot.id.value(), false);
           }
           bot.idle_exit = generate_random_idle_exit();
           bot.in_idle = 0;
@@ -69,8 +69,8 @@ namespace tetris_bi {
       } else if (st == tetris_game::state::SESSION) {
         if (bot.prev_state == tetris_game::state::IDLE) {
           if (bot.id.has_value()) {
-            is_playing_tetris_updates[bot.id.value()] = true;
-            played_sessions += 1;
+            set_is_playing_tetris_update(bot.id.value(), true);
+            increase_sessions();
           }
           bot.session_exit = generate_random_session_exit();
           bot.in_session = 0;
@@ -94,104 +94,53 @@ namespace tetris_bi {
         }
         bot.prev_state = tetris_game::state::SESSION;
       }
-    }  // end of for
+    }  // end of for on bots
 
-    if (is_connected && tim.time - last_send_time > 1) {
-      nlohmann::json arr = nlohmann::json::array();
-      auto &vec = arr.get_ref<nlohmann::json::array_t&>();
-      vec.reserve(is_playing_tetris_updates.size());
+    flush_update(t);
+  }
 
-      for (auto &[id, value] : is_playing_tetris_updates) {
-        arr.push_back({{"id", id}, {"value", value}});
+  void bots_client::on_open() {
+    register_batch(bots_number);
+  }
+
+  void bots_client::on_close() {
+    register_finished = false;
+    for (auto &b : bots) b = {};
+  }
+
+  void bots_client::on_message(const nlohmann::json &data) {
+    std::string message = data["message"];
+
+    if (message == "register_batch") {
+      auto x = data["ids"];
+
+      std::lock_guard guard(bots_mutex);
+      for (int i = 0; i < bots_number; i++) {
+        bots[i].id = x[i];
       }
-      ws.send(nlohmann::json{
-        {"type", "set_is_playing_tetris_batch"},
-        {"data", arr}
-        }.dump());
-      is_playing_tetris_updates.clear();
-
-      ws.send(nlohmann::json{
-        {"type", "increase_number_of_sessions"},
-        {"data", played_sessions}
-        }.dump());
-      played_sessions = 0;
-
-      nlohmann::json arr_wl = nlohmann::json::array();
-      auto& vec_wl = arr_wl.get_ref<nlohmann::json::array_t&>();
-      vec_wl.reserve(bots.size());
-      for (auto& bot : bots) {
-        if (bot.id.has_value()) {
-          bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
-          arr_wl.push_back({
-            {"id", bot.id},
-            {"wins", bot.game.meta.wins - bot.wins},
-            {"losses", bot.game.meta.losses - bot.losses},
-            {"max_streak", bot.max_streak}
-            });
-        }
-        bot.wins = bot.game.meta.wins;
-        bot.losses = bot.game.meta.losses;
-        bot.max_streak = 0;
-      }
-      ws.send(nlohmann::json{
-        {"type", "update_metrics"},
-        {"data", arr_wl}
-        }.dump());
-
-      last_send_time = tim.time;
+      register_finished = true;
     }
   }
 
-  void bots_client::connect() {
-    ws.setUrl("ws://127.0.0.1:5837/ws");
+  nlohmann::json bots_client::on_update_metrics() {
+    nlohmann::json arr = nlohmann::json::array();
+    auto &vec = arr.get_ref<nlohmann::json::array_t&>();
+    vec.reserve(bots.size());
 
-    ws.setOnMessageCallback([&](const ix::WebSocketMessagePtr &msg) {
-      if (msg->type == ix::WebSocketMessageType::Open) {
-        std::cout << "WebSocket connected!" << std::endl;
-        is_connected = true;
-        bots_register();
+    for (auto& bot : bots) {
+      if (bot.id.has_value()) {
+        bot.max_streak = max(bot.max_streak, bot.game.diff.level_number - 1);
+        arr.push_back({
+          {"id", bot.id},
+          {"wins", bot.game.meta.wins - bot.wins},
+          {"losses", bot.game.meta.losses - bot.losses},
+          {"max_streak", bot.max_streak}
+          });
       }
-      else if (msg->type == ix::WebSocketMessageType::Close) {
-        std::cout << "WebSocket closed" << std::endl;
-        is_connected = false;
-        register_finished = false;
-        for (auto &b : bots) b = {};
-      }
-      else if (msg->type == ix::WebSocketMessageType::Message) {
-        nlohmann::json js = nlohmann::json::parse(msg->str);
-        std::string message = js["message"];
-
-        if (message == "register_batch") {
-          auto x = js["ids"];
-
-          std::lock_guard guard(bots_mutex);
-
-          for (int i = 0; i < number; i++) {
-            bots[i].id = x[i];
-          }
-          register_finished = true;
-        }
-      }
-      else if (msg->type == ix::WebSocketMessageType::Error) {
-        std::cerr << "WebSocket error: " << msg->errorInfo.reason << std::endl;
-      }
-    });
-
-    ws.start();
-
-    for (int i = 0; i < 50 && !is_connected; i++) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      bot.wins = bot.game.meta.wins;
+      bot.losses = bot.game.meta.losses;
+      bot.max_streak = 0;
     }
-
-    if (!is_connected) {
-      std::cout << "Bots client: websocket is not connected in 5 seconds. Fail\n";
-      ws.stop();
-    }
-  }
-
-  void bots_client::bots_register() {
-    if (is_connected) {
-      ws.send(R"({"type":"register_batch", "number": )" + std::to_string(number) + "}");
-    }
+    return arr;
   }
 }

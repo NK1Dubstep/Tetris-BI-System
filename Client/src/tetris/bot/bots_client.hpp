@@ -15,21 +15,22 @@
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "utils/random.hpp"
+#include "tetris/stats_sender/stats_sender.hpp"
 
 #include <queue>
 #include <unordered_map>
 
 namespace tetris_bi {
-  class bots_client {
+  class bots_client : private stats_sender {
     friend class super_tetris_window;
   public:
-    bots_client(int n);
-    ~bots_client() {ws.stop();}
+    bots_client(uint32_t bots_number);
+    ~bots_client() { disconnect(); };
 
     void update();
 
   private:
-    int number;
+    int bots_number;
 
     struct bot {
       std::optional<uint32_t> id{std::nullopt};
@@ -45,22 +46,15 @@ namespace tetris_bi {
       int max_streak{0};
     };
 
-    std::unordered_map<uint32_t, bool> is_playing_tetris_updates;
-    timer::seconds last_send_time;
-
-    uint32_t played_sessions = 0;
-
-    ix::WebSocket ws;
-    std::atomic<bool> is_connected;
-
-    void connect();
-
-    void bots_register();
     std::atomic<bool> register_finished{false};
-
-    timer tim;
     std::vector<bot> bots;
     std::mutex bots_mutex;
+    timer tim;
+
+    void on_open() override;
+    void on_close() override;
+    void on_message(const nlohmann::json &data) override;
+    nlohmann::json on_update_metrics() override;
   };
 }
 

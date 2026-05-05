@@ -15,6 +15,7 @@ namespace tetris_bi {
   private:
     ma_engine engine;
     bool is_ok{true};
+    std::vector<ma_sound *> loops;
 
     audio_player() {
       ma_result result = ma_engine_init(NULL, &engine);
@@ -23,8 +24,18 @@ namespace tetris_bi {
       }
     }
 
+    void stop_loops() {
+      for (auto *s : loops) {
+        ma_sound_stop(s);
+        ma_sound_uninit(s);
+        delete s;
+      }
+      loops.clear();
+    }
+
     ~audio_player() {
       if (is_ok) {
+        stop_loops();
         ma_engine_uninit(&engine);
       }
     }
@@ -43,6 +54,19 @@ namespace tetris_bi {
       if (is_ok) {
         ma_engine_play_sound(&engine, path.c_str(), NULL);
       }
+    }
+
+    void play_loop(const std::string &path) {
+      if (!is_ok) return;
+
+      ma_sound *sound = new ma_sound;
+      if (ma_sound_init_from_file(&engine, path.c_str(), 0, NULL, NULL, sound) != MA_SUCCESS) {
+        delete sound;
+        return;
+      }
+      ma_sound_set_looping(sound, MA_TRUE);
+      ma_sound_start(sound);
+      loops.push_back(sound);
     }
   };
 }

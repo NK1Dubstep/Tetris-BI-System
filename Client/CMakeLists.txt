@@ -16,7 +16,7 @@ set(SOURCES
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
   src/tetris/bot/bots_client.cpp
-  src/utils/net.cpp
+  src/tetris/stats_sender/stats_sender.cpp
   src/utils/audio.cpp
 )
 
