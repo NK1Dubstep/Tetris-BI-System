@@ -51,10 +51,10 @@ namespace tetris_bi {
     std::mutex bots_mutex;
     timer tim;
 
-    void on_open() override;
-    void on_close() override;
-    void on_message(const nlohmann::json &data) override;
-    nlohmann::json on_update_metrics() override;
+    void ss_on_open() override;
+    void ss_on_close() override;
+    void ss_on_message(const nlohmann::json &data) override;
+    nlohmann::json ss_on_update_metrics() override;
   };
 }
 

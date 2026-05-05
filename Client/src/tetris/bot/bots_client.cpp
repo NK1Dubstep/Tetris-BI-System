@@ -99,16 +99,16 @@ namespace tetris_bi {
     flush_update(t);
   }
 
-  void bots_client::on_open() {
+  void bots_client::ss_on_open() {
     register_batch(bots_number);
   }
 
-  void bots_client::on_close() {
+  void bots_client::ss_on_close() {
     register_finished = false;
     for (auto &b : bots) b = {};
   }
 
-  void bots_client::on_message(const nlohmann::json &data) {
+  void bots_client::ss_on_message(const nlohmann::json &data) {
     std::string message = data["message"];
 
     if (message == "register_batch") {
@@ -122,7 +122,7 @@ namespace tetris_bi {
     }
   }
 
-  nlohmann::json bots_client::on_update_metrics() {
+  nlohmann::json bots_client::ss_on_update_metrics() {
     nlohmann::json arr = nlohmann::json::array();
     auto &vec = arr.get_ref<nlohmann::json::array_t&>();
     vec.reserve(bots.size());

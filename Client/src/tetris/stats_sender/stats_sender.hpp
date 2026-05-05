@@ -42,10 +42,10 @@ namespace tetris_bi {
     timer::seconds send_time{1};
 
   protected:
-    virtual void on_open() = 0;
-    virtual void on_close() = 0;
-    virtual void on_message(const nlohmann::json &data) = 0;
-    virtual nlohmann::json on_update_metrics() = 0;
+    virtual void ss_on_open() = 0;
+    virtual void ss_on_close() = 0;
+    virtual void ss_on_message(const nlohmann::json &data) = 0;
+    virtual nlohmann::json ss_on_update_metrics() = 0;
 
   public:
     stats_sender() = default;
