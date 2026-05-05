@@ -70,6 +70,10 @@ namespace tetris_bi {
     }
   }
 
+  void tetris_game::drop() {
+    while (check_down()) move_down();
+  }
+
   [[nodiscard]] bool tetris_game::check_direction(int dir) const {
     for (auto& p : current_figure.points) {
       bool is_yourself = check_current_shape(p.x + dir, p.y);
@@ -249,7 +253,7 @@ namespace tetris_bi {
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.001;
+    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.35;
 
     if (st == state::SESSION) {
       from_last_tick += delta_time;

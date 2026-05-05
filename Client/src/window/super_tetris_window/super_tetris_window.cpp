@@ -17,8 +17,10 @@
 
 namespace tetris_bi {
 
-  const int super_tetris_window::BOT_NUMBER = 1'000;
-
+  const int super_tetris_window::DUMMY_BOT_NUMBER = 100;
+  const int super_tetris_window::SMART_BOT_NUMBER = 3;
+  const int super_tetris_window::BOT_NUMBER =
+    super_tetris_window::DUMMY_BOT_NUMBER + super_tetris_window::SMART_BOT_NUMBER;
   super_tetris_window::super_tetris_window() :
     window("Nk1 av1 super tertis", 800, 800),
     render(800, 800)
@@ -105,7 +107,7 @@ namespace tetris_bi {
     bsc.update();
 
     std::lock_guard(bsc.bots_mutex);
-    auto &target_tetris = bsc.bots[draw_index].game;
+    auto &target_tetris = bsc.bots[draw_index]->game;
 
     render_tetris(target_tetris.get_tetris_field());
     auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();

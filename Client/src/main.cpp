@@ -11,7 +11,7 @@
 #include "utils/audio.hpp"
 
 int main() {
-  tetris_bi::audio_player::get().play("music/TetrisTheme.mp3");
+  // tetris_bi::audio_player::get().play("music/TetrisTheme.mp3");
 
   tetris_bi::super_tetris_window stw;
   stw.run();
