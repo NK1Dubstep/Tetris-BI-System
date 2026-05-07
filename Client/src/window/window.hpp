@@ -9,11 +9,14 @@
 
 #include "MiniFB_cpp.h"
 
+#include <cstdint>
+
 namespace tetris_bi {
   class window {
   protected:
     mfb_window *win{nullptr};
     uint32_t width{}, height{};
+    float dpi_x, dpi_y;
 
     virtual void my_active(mfb_window *, bool is_active);
     virtual void my_resize(mfb_window *, int w, int h);
@@ -32,3 +35,4 @@ namespace tetris_bi {
     void run();
   };
 }
+

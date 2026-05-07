@@ -144,7 +144,6 @@ namespace tetris_bi {
           set_is_playing_tetris_update(id.load().value(), false);
         }
         increase_sessions();
-        max_streak = max(max_streak, game.diff.level_number - 1);
       }
       prev_state = tetris_game::state::IDLE;
     } else if (st == tetris_game::state::SESSION) {

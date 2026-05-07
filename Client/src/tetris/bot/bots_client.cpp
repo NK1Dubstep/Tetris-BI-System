@@ -42,7 +42,7 @@ namespace tetris_bi {
       bot->idle_exit = generate_random_idle_exit();
       bot->session_exit = generate_random_session_exit();
     }
-    connect(5);
+    connect(0.5);
   }
 
   void bots_client::update() {

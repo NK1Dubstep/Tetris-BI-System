@@ -11,11 +11,13 @@
 
 #include "window/window.hpp"
 #include "render/render.hpp"
+#include "render/ui.hpp"
+#include "utils/input.hpp"
 #include "tetris/tetris.hpp"
 #include "tetris/bot/bots_client.hpp"
 
 namespace tetris_bi {
-  class super_tetris_window : public window, public render {
+  class super_tetris_window : public window, public render, public input {
   public:
     super_tetris_window();
 
@@ -38,5 +40,7 @@ namespace tetris_bi {
     bots_client bsc = bots_client(SMART_BOT_NUMBER, DUMMY_BOT_NUMBER);
     timer tim;
     int draw_index{0};
+
+    ui some_ui;
   };
 }

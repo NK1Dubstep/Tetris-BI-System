@@ -11,7 +11,6 @@
 #include <stdexcept>
 
 namespace tetris_bi {
-
   window::window(const char *title, uint32_t width, uint32_t height, uint32_t flags)
     : width(width), height(height), win(mfb_open_ex(title, width, height, flags))
   {
@@ -27,6 +26,7 @@ namespace tetris_bi {
     mfb_set_mouse_button_callback(win, this, &window::my_mouse_button);
     mfb_set_mouse_move_callback(win, this, &window::my_mouse_move);
     mfb_set_mouse_scroll_callback(win, this, &window::my_mouse_scroll);
+    mfb_get_monitor_dpi(win, &dpi_x, &dpi_y);
   }
 
   void window::my_active(

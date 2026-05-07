@@ -35,9 +35,6 @@ namespace tetris_bi {
 
     std::atomic<std::optional<uint32_t>> id;
     tetris_game::state prev_state{tetris_game::state::IDLE};
-    int wins{0};
-    int losses{0};
-    int max_streak{0};
 
     void ss_on_open() override;
     void ss_on_close() override;

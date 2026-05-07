@@ -15,6 +15,8 @@ namespace tetris_bi {
   public:
     render(const uint32_t W, const uint32_t H) : width(W), height(H), buffer(W * H, 0) {}
 
+    static const uint32_t FONT_W = 8, FONT_H = 16;
+
     std::vector<uint32_t>& get_buffer();
 
     void draw_rectangle(const uint32_t x1, const uint32_t y1,
@@ -32,7 +34,6 @@ namespace tetris_bi {
     void draw_string(const std::string &s, uint32_t x1, uint32_t y1, uint32_t color);
 
   private:
-    static const uint32_t FONT_W = 8, FONT_H = 16;
     uint32_t width;
     uint32_t height;
     std::vector<uint32_t> buffer;

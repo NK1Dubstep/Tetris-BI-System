@@ -9,6 +9,7 @@ set(TARGET_NAME "Tetris")
 set(SOURCES
   src/main.cpp
   src/render/render.cpp
+  src/render/ui.cpp
   src/window/window.cpp
   src/window/tetris_window/tetris_window.cpp
   src/window/super_tetris_window/super_tetris_window.cpp

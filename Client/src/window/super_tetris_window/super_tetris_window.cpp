@@ -26,6 +26,9 @@ namespace tetris_bi {
     render(800, 800)
   {
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
+    some_ui.add(std::make_unique<button>(10, 300, "Tertis button\nTertis button", MOUSE_BTN_1));
+    some_ui.add(std::make_unique<button>(10, 350, "Tertis button\nTertis button", MOUSE_BTN_1));
+    some_ui.add(std::make_unique<button>(10, 400, "Tertis button\nTertis button", MOUSE_BTN_1));
   }
 
   void super_tetris_window::my_active(
@@ -58,6 +61,7 @@ namespace tetris_bi {
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
+    update_keyboard(key, is_pressed);
 
     if (is_pressed) {
       switch (key) {
@@ -85,26 +89,37 @@ namespace tetris_bi {
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
+    update_mbuttons(button, is_pressed);
   }
 
   void super_tetris_window::my_mouse_move(
     mfb_window*,
-    [[maybe_unused]] int x,
-    [[maybe_unused]] int y
+    [[maybe_unused]] int mx,
+    [[maybe_unused]] int my
   ) {
+    update_mpos(mx, my, dpi_x, dpi_y);
   }
 
   void super_tetris_window::my_mouse_scroll(
     mfb_window*,
     [[maybe_unused]] mfb_key_mod mod,
-    [[maybe_unused]] float dx,
-    [[maybe_unused]] float dy
+    [[maybe_unused]] float mdx,
+    [[maybe_unused]] float mdy
   ) {
   }
 
   void super_tetris_window::my_frame() {
     tim.update();
     bsc.update();
+
+    input_state is {
+      .x = get_x(),
+      .y = get_y(),
+      .pressed_keys = get_pressed_keys().data(),
+      .pressed_keys_instant = get_pressed_keys_instant().data()
+    };
+    some_ui.update(is);
+    input::instant_reset();
 
     std::lock_guard guard(bsc.bots_mutex);
     auto &target_tetris = bsc.bots[draw_index]->game;
@@ -131,6 +146,7 @@ Tertis diff lose_line: {},
     draw_string(str2, 0, 32, 0x660066);
     draw_string(str4, 0, 48, 0x666666);
 
+    some_ui.draw(static_cast<render &>(*this));
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
 }
