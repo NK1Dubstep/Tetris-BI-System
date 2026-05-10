@@ -13,48 +13,60 @@
 
 namespace tetris_bi {
   class input {
-    static constexpr uint32_t MINIFB_MAX_KEY{349};
+    static constexpr uint32_t MINIFB_MAX_KEY{512};
     static constexpr uint32_t MINIFB_MAX_MBUTTON{8};
 
     std::array<bool, MINIFB_MAX_KEY> pressed_keys{};
+    std::array<bool, MINIFB_MAX_KEY> pressed_keys_prev{};
     std::array<bool, MINIFB_MAX_KEY> pressed_keys_instant{};
 
     int x{0}, y{0}, dx{0}, dy{0};
 
   public:
-    void instant_reset() {
-      std::fill(
-        pressed_keys_instant.begin(),
-        pressed_keys_instant.end(),
-        false
+    void update_keyboard(mfb_window *win) {
+      const uint8_t *minifb_pressed_keys = mfb_get_key_buffer(win);
+
+      for (uint32_t key = MINIFB_MAX_MBUTTON; key < MINIFB_MAX_KEY; key++) {
+        pressed_keys[key] = minifb_pressed_keys[key];
+
+        if (!pressed_keys_prev[key]) {
+          pressed_keys_instant[key] = minifb_pressed_keys[key];
+        } else {
+          pressed_keys_instant[key] = false;
+        }
+      }
+      std::copy(
+        pressed_keys.begin() + MINIFB_MAX_MBUTTON,
+        pressed_keys.end(),
+        pressed_keys_prev.begin() + MINIFB_MAX_MBUTTON
       );
     }
 
-    void update_keyboard(mfb_key key, bool is_pressed) {
-      if (key == KB_KEY_UNKNOWN) {
-        return;
-      }
+    void update_mbuttons(mfb_window *win) {
+      const uint8_t *minifb_pressed_mbuttons = mfb_get_mouse_button_buffer(win);
 
-      if (is_pressed) {
-        pressed_keys[key] = true;
-        pressed_keys_instant[key] = true;
-      } else {
-        pressed_keys[key] = false;
+      for (uint32_t key = 0; key < MINIFB_MAX_MBUTTON; key++) {
+        pressed_keys[key] = minifb_pressed_mbuttons[key];
+
+        if (!pressed_keys_prev[key]) {
+          pressed_keys_instant[key] = minifb_pressed_mbuttons[key];
+        } else {
+          pressed_keys_instant[key] = false;
+        }
       }
+      std::copy(
+        pressed_keys.begin(),
+        pressed_keys.begin() + MINIFB_MAX_MBUTTON,
+        pressed_keys_prev.begin()
+      );
     }
 
-    void update_mbuttons(mfb_mouse_button button, bool is_pressed) {
-      if (is_pressed) {
-        pressed_keys[button] = true;
-        pressed_keys_instant[button] = true;
-      } else {
-        pressed_keys[button] = false;
-      }
-    }
+    void update_mpos(mfb_window *win, float dpi_x = 1.0, float dpi_y = 1.0) noexcept {
+      int mx = mfb_get_mouse_x(win), my = mfb_get_mouse_y(win);
+      mx = static_cast<int>(mx / dpi_x), my = static_cast<int>(my / dpi_y);
 
-    void update_mpos(int mx, int my, float dpi_x = 1.0, float dpi_y = 1.0) noexcept {
-      dx = x - mx, dy = y - my;
-      x = static_cast<int>(mx / dpi_x), y = static_cast<int>(my / dpi_y);
+      dx = mx - x, dy = my - y;
+      x = mx, y = my;
     }
 
     const auto &get_pressed_keys() const noexcept {

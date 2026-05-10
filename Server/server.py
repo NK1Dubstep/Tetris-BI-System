@@ -101,7 +101,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 existing_ids.extend(extra_ids)
 
               cur.executemany("""
-                UPDATE players SET is_playing = TRUE, last_login = NOW()
+                UPDATE players SET is_playing = TRUE, is_playing_tetris = FALSE, last_login = NOW()
                 WHERE id = %s
               """, [(bid,) for bid in existing_ids])
 

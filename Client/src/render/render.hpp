@@ -27,6 +27,9 @@ namespace tetris_bi {
 
     void resize(const uint32_t W, const uint32_t H);
 
+    void clear_screen();
+    void beautiful_bg_273();
+
     [[nodiscard]] uint32_t get_color(int value) const;
     void render_tetris(const tetris_field& field);
 

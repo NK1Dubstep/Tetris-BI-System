@@ -21,7 +21,7 @@ namespace tetris_bi {
     window("Nk1 av1 super tertis", 800, 800),
     render(800, 800)
   {
-    // render::draw_rectangle(0, 0, 100, 100, 0x834d18);
+    render::draw_rectangle(0, 0, 100, 100, 0x834d18);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
     stats_sender::connect(2);
   }
@@ -86,9 +86,6 @@ namespace tetris_bi {
         case mfb_key::KB_KEY_W:
           game.rotateCCW();
           break;
-        case mfb_key::KB_KEY_P:
-          tim.pause_switch();
-          break;
         default:
           break;
       }
@@ -130,6 +127,7 @@ namespace tetris_bi {
 
   void tetris_window::my_frame() {
     tim.update();
+    beautiful_bg_273();
 
     auto dt = tim.delta_time_p;
     auto t = tim.time_p;
@@ -149,7 +147,7 @@ namespace tetris_bi {
     } else if (st == tetris_game::state::SESSION) {
       if (prev_state == tetris_game::state::IDLE) {
         if (id.load().has_value()) {
-          set_is_playing_tetris_update(id.load().has_value(), true);
+          set_is_playing_tetris_update(id.load().value(), true);
         }
       }
       prev_state = tetris_game::state::SESSION;

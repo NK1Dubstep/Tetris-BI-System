@@ -13,11 +13,13 @@ set(SOURCES
   src/window/window.cpp
   src/window/tetris_window/tetris_window.cpp
   src/window/super_tetris_window/super_tetris_window.cpp
+  src/window/super_puper_tetris_window/super_puper_tetris_window.cpp
   src/tetris/tetris.cpp
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp
   src/tetris/bot/bots_client.cpp
   src/tetris/bot/200iq_bot.cpp
+  src/tetris/manual/manual_tetris.cpp
   src/tetris/stats_sender/stats_sender.cpp
   src/utils/audio.cpp
 )

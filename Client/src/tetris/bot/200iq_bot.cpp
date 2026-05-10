@@ -97,4 +97,11 @@ namespace tetris_bi {
       (*best_move) -= best_move.value() / std::abs(best_move.value());
     }
   }
+
+  void bots_client::bot_200iq::reset() {
+    bot::reset();
+    best_rotate = std::nullopt;
+    best_move = std::nullopt;
+    curr_figure_passed = -1;
+  }
 }

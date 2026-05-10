@@ -61,8 +61,6 @@ namespace tetris_bi {
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
-    update_keyboard(key, is_pressed);
-
     if (is_pressed) {
       switch (key) {
       case mfb_key::KB_KEY_D:
@@ -89,7 +87,6 @@ namespace tetris_bi {
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
-    update_mbuttons(button, is_pressed);
   }
 
   void super_tetris_window::my_mouse_move(
@@ -97,7 +94,6 @@ namespace tetris_bi {
     [[maybe_unused]] int mx,
     [[maybe_unused]] int my
   ) {
-    update_mpos(mx, my, dpi_x, dpi_y);
   }
 
   void super_tetris_window::my_mouse_scroll(
@@ -110,7 +106,12 @@ namespace tetris_bi {
 
   void super_tetris_window::my_frame() {
     tim.update();
+    beautiful_bg_273();
     bsc.update();
+
+    update_keyboard(win);
+    update_mbuttons(win);
+    update_mpos(win, dpi_x, dpi_y);
 
     input_state is {
       .x = get_x(),
@@ -119,10 +120,9 @@ namespace tetris_bi {
       .pressed_keys_instant = get_pressed_keys_instant().data()
     };
     some_ui.update(is);
-    input::instant_reset();
 
-    std::lock_guard guard(bsc.bots_mutex);
-    auto &target_tetris = bsc.bots[draw_index]->game;
+    std::lock_guard guard(bsc.get_bots_mutex());
+    const auto &target_tetris = bsc.get_bots()[draw_index]->game;
 
     render_tetris(target_tetris.get_tetris_field());
     auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();

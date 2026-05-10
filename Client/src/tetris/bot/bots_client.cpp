@@ -106,7 +106,7 @@ namespace tetris_bi {
 
   void bots_client::ss_on_close() {
     register_finished = false;
-    for (auto &b : bots) b = {};
+    for (auto &b : bots) b->reset();
   }
 
   void bots_client::ss_on_message(const nlohmann::json &data) {

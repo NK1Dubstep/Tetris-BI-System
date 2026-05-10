@@ -47,7 +47,6 @@ namespace tetris_bi {
     virtual void ss_on_message(const nlohmann::json &data) = 0;
     virtual nlohmann::json ss_on_update_metrics() = 0;
 
-  public:
     stats_sender() = default;
 
     void register_batch(uint32_t number);
@@ -61,5 +60,8 @@ namespace tetris_bi {
     void set_send_time(timer::seconds time);
 
     void flush_update(timer::seconds time);
+
+  public:
+    bool get_connection_status() {return is_connected;}
   };
 }

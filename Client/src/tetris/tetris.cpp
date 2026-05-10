@@ -13,7 +13,8 @@
 #include "tetris.hpp"
 
 namespace tetris_bi {
-  tetris_game::tetris_game() {
+  tetris_game::tetris_game(timer::seconds figure_fall_interval) :
+    figure_fall_interval(figure_fall_interval) {
     generate_shapes_data();
   }
 
@@ -253,11 +254,9 @@ namespace tetris_bi {
   }
 
   void tetris_game::update(const timer::seconds delta_time) {
-    static constexpr timer::seconds FIGURE_FALL_INTERVAL = 0.01;
-
     if (st == state::SESSION) {
       from_last_tick += delta_time;
-      if (from_last_tick > FIGURE_FALL_INTERVAL) {
+      if (from_last_tick > figure_fall_interval) {
         tick();
         from_last_tick = 0;
       }

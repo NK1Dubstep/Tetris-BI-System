@@ -26,7 +26,7 @@ namespace tetris_bi {
     mfb_set_mouse_button_callback(win, this, &window::my_mouse_button);
     mfb_set_mouse_move_callback(win, this, &window::my_mouse_move);
     mfb_set_mouse_scroll_callback(win, this, &window::my_mouse_scroll);
-    mfb_get_monitor_dpi(win, &dpi_x, &dpi_y);
+    mfb_get_monitor_scale(win, &dpi_x, &dpi_y);
   }
 
   void window::my_active(

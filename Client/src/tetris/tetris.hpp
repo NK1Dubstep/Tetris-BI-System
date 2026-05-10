@@ -46,7 +46,7 @@ namespace tetris_bi {
 
   class tetris_game {
   public:
-    tetris_game();
+    tetris_game(timer::seconds figure_fall_interval = 0.01);
 
     const tetris_field &get_tetris_field() const {
       return tetris_field;
@@ -69,6 +69,8 @@ namespace tetris_bi {
     [[nodiscard]] state get_state() noexcept;
 
   private:
+    timer::seconds figure_fall_interval;
+
     void generate_shapes_data();
     void tick();
 
@@ -145,7 +147,7 @@ namespace tetris_bi {
   public:
     struct session_diff {
       uint32_t level_number{1};
-      int figure_to_win{INT32_MAX};
+      int figure_to_win{10/*INT32_MAX*/};
       uint32_t lose_line{2};
     };
     session_diff diff;

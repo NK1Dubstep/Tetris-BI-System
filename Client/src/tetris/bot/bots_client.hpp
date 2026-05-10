@@ -7,11 +7,6 @@
 
 #pragma once
 
-// IXWebSocket
-#include "ixwebsocket/IXNetSystem.h"
-#include "ixwebsocket/IXWebSocket.h"
-#include "ixwebsocket/IXUserAgent.h"
-
 #include "tetris/tetris.hpp"
 #include "utils/timer.hpp"
 #include "utils/random.hpp"
@@ -23,13 +18,16 @@
 #include <optional>
 
 namespace tetris_bi {
-  class bots_client : private stats_sender {
-    friend class super_tetris_window;
+  class bots_client : public stats_sender {
   public:
     bots_client(uint32_t clever_bot_number, uint32_t dummy_bot_number);
     ~bots_client() { disconnect(); };
     
     void update();
+
+    auto get_bots_number() {return bots_number;}
+    auto &get_bots_mutex() {return bots_mutex;}
+    const auto &get_bots() {return bots;}
 
   private:
     int bots_number{0};
@@ -59,6 +57,12 @@ namespace tetris_bi {
         default: break;
         }
       }
+
+      virtual void reset() {
+        auto tmp = TICK_INTERVAL;
+        *this = {};
+        TICK_INTERVAL = tmp; // sorry bad code :D
+      }
     };
 
     struct bot_200iq : public bot {
@@ -75,6 +79,7 @@ namespace tetris_bi {
       int eval(const tetris_game& game);
       void calculate_best_way();
       void make_move() override;
+      void reset() override;
     };
 
     std::atomic<bool> register_finished{false};

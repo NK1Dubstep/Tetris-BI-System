@@ -8,15 +8,20 @@
 #include <algorithm>
 #include <sstream>
 
+#include "utils/audio.hpp"
 #include "ui.hpp"
+
+#undef max
 
 namespace tetris_bi {
 
-  button::button(uint32_t x1, uint32_t y1, std::string text, uint32_t trigger_key) :
+  button::button(int x1, int y1, std::string text,
+    uint32_t trigger_key, const std::function<void()> &f) :
     x1(x1), y1(y1), text(text),
     y2(y1 + MARGIN_Y + (static_cast<uint32_t>(std::count(text.begin(),
       text.end(), '\n')) + 1) * render::FONT_H),
-    trigger_key(trigger_key) {
+    trigger_key(trigger_key),
+    f(f) {
 
     std::istringstream stream(text);
     std::string line;
@@ -25,7 +30,7 @@ namespace tetris_bi {
     while (std::getline(stream, line)) {
       max_len = std::max(max_len, line.size());
     }
-    x2 = x1 + MARGIN_X + static_cast<uint32_t>(max_len) * render::FONT_W;
+    x2 = x1 + MARGIN_X + static_cast<int>(max_len) * render::FONT_W;
   }
 
   void button::draw(render &rnd) {
@@ -51,7 +56,8 @@ namespace tetris_bi {
     }
 
     if (is_pressed) {
-      std::cout << "im pressed\n";
+      audio_player::get().play("music/Mecha3Perc7.wav");
+      f();
     }
   }
 }

@@ -102,9 +102,43 @@ namespace tetris_bi {
     }
   }
 
-  void render::render_tetris(const tetris_field& field) {
+  void render::clear_screen() {
     std::fill(buffer.data(), buffer.data() + width * height, 0);
+  }
 
+  void render::beautiful_bg_273() {
+    static float time = 0.0f;
+    time += 0.012f;
+
+    uint32_t cols = (width  + 8) / 9;
+    uint32_t rows = (height + 8) / 9;
+
+    for (uint32_t gy = 0; gy < rows; gy++) {
+      for (uint32_t gx = 0; gx < cols; gx++) {
+        float cx = gx / (float)cols - 0.5f;
+        float cy = gy / (float)rows - 0.5f;
+        float dist = sqrtf(cx * cx + cy * cy);
+
+        float wave = sinf(time + dist * 8.0f + gx * 0.07f + gy * 0.05f);
+        uint8_t b = (uint8_t)std::clamp(18.0f + wave * 14.0f + dist * 20.0f, 10.0f, 62.0f);
+        uint32_t color = (b << 16) | (b << 8) | b;
+
+        uint32_t px = gx * 9;
+        uint32_t py = gy * 9;
+        uint32_t cell_w = std::min(px + 9, width)  - px;
+        uint32_t cell_h = std::min(py + 9, height) - py;
+
+        uint32_t* first_row = buffer.data() + py * width + px;
+        std::fill(first_row, first_row + cell_w, color);
+
+        for (uint32_t dy = 1; dy < cell_h; dy++) {
+          memcpy(first_row + dy * width, first_row, cell_w * sizeof(uint32_t));
+        }
+      }
+    }
+  }
+
+  void render::render_tetris(const tetris_field& field) {
     uint32_t cell_size = 20;
 
     uint32_t field_w = field.get_width();

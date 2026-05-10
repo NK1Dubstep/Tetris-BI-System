@@ -9,6 +9,7 @@
 
 #include "miniaudio.h"
 #include <string>
+#include <vector>
 
 namespace tetris_bi {
   class audio_player {
