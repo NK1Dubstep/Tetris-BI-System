@@ -49,7 +49,7 @@ namespace tetris_bi {
     tetris_game(timer::seconds figure_fall_interval = 0.01);
 
     const tetris_field &get_tetris_field() const {
-      return tetris_field;
+      return field;
     }
 
     void move_direction(int dir);
@@ -154,7 +154,7 @@ namespace tetris_bi {
   private:
     state st{state::IDLE};
 
-    tetris_field tetris_field;
+    tetris_field field;
     tetris_figure current_figure;
     tetris_figure next_figure;
 

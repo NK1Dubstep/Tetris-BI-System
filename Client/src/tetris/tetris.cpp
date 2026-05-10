@@ -25,7 +25,7 @@ namespace tetris_bi {
     st = state::SESSION;
     prog = {};
     diff = {};
-    tetris_field.reset();
+    field.reset();
     from_last_tick = 0;
     generate_new_figure(current_figure);
     commit_current_figure();
@@ -53,7 +53,7 @@ namespace tetris_bi {
   [[nodiscard]] bool tetris_game::check_down() const {
     for (auto& p : current_figure.points) {
       bool is_yourself = check_current_shape(p.x, p.y + 1);
-      if (tetris_field.get_cell(p.x, p.y + 1) != 0 && !is_yourself) {
+      if (field.get_cell(p.x, p.y + 1) != 0 && !is_yourself) {
         return false;
       }
     }
@@ -62,11 +62,11 @@ namespace tetris_bi {
 
   void tetris_game::move_down() {
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, 0);
+      field.change_cell(p.x, p.y, 0);
       p.y++;
     }
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, p.val);
+      field.change_cell(p.x, p.y, p.val);
     }
   }
 
@@ -77,7 +77,7 @@ namespace tetris_bi {
   [[nodiscard]] bool tetris_game::check_direction(int dir) const {
     for (auto& p : current_figure.points) {
       bool is_yourself = check_current_shape(p.x + dir, p.y);
-      if (tetris_field.get_cell(p.x + dir, p.y) != 0 && !is_yourself) {
+      if (field.get_cell(p.x + dir, p.y) != 0 && !is_yourself) {
         return false;
       }
     }
@@ -88,11 +88,11 @@ namespace tetris_bi {
     if (st != state::SESSION || !check_direction(dir)) return;
 
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, 0);
+      field.change_cell(p.x, p.y, 0);
       p.x += dir;
     }
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, p.val);
+      field.change_cell(p.x, p.y, p.val);
     }
   }
 
@@ -107,7 +107,7 @@ namespace tetris_bi {
       new_x += rotate_point.x;
       new_y += rotate_point.y;
       bool is_yourself = check_current_shape(new_x, new_y);
-      if (tetris_field.get_cell(new_x, new_y) != 0 && !is_yourself) {
+      if (field.get_cell(new_x, new_y) != 0 && !is_yourself) {
         return false;
       }
     }
@@ -121,7 +121,7 @@ namespace tetris_bi {
     point rotate_point = current_figure.points[1];
 
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, 0);
+      field.change_cell(p.x, p.y, 0);
       int new_x = p.x - rotate_point.x;
       int new_y = p.y - rotate_point.y;
       std::swap(new_x, new_y);
@@ -130,7 +130,7 @@ namespace tetris_bi {
       p.y = new_y + rotate_point.y;
     }
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, p.val);
+      field.change_cell(p.x, p.y, p.val);
     }
   }
 
@@ -145,7 +145,7 @@ namespace tetris_bi {
       new_x += rotate_point.x;
       new_y += rotate_point.y;
       bool is_yourself = check_current_shape(new_x, new_y);
-      if (tetris_field.get_cell(new_x, new_y) != 0 && !is_yourself) {
+      if (field.get_cell(new_x, new_y) != 0 && !is_yourself) {
         return false;
       }
     }
@@ -159,7 +159,7 @@ namespace tetris_bi {
     point rotate_point = current_figure.points[1];
 
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, 0);
+      field.change_cell(p.x, p.y, 0);
       int new_x = p.x - rotate_point.x;
       int new_y = p.y - rotate_point.y;
       std::swap(new_x, new_y);
@@ -168,13 +168,13 @@ namespace tetris_bi {
       p.y = new_y + rotate_point.y;
     }
     for (auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, p.val);
+      field.change_cell(p.x, p.y, p.val);
     }
   }
 
   void tetris_game::commit_current_figure() {
     for (const auto& p : current_figure.points) {
-      tetris_field.change_cell(p.x, p.y, p.val);
+      field.change_cell(p.x, p.y, p.val);
     }
   }
 
@@ -213,9 +213,9 @@ namespace tetris_bi {
     meta.wins++;
 
     if (diff.level_number % 2 == 0) {
-      diff.lose_line = std::min(diff.lose_line + 1, tetris_field.get_height() - 5);
+      diff.lose_line = std::min(diff.lose_line + 1, field.get_height() - 5);
     }
-    tetris_field.reset();
+    field.reset();
   }
 
   void tetris_game::tick() {
@@ -225,7 +225,7 @@ namespace tetris_bi {
       move_down();
     }
     else {
-      int cleared = tetris_field.clear_lines();
+      int cleared = field.clear_lines();
       prog.score += cleared * cleared;
       prog.total_lines += cleared;
       prog.figure_passed++, prog.figure_passed_lvl++;

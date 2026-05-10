@@ -12,46 +12,46 @@ namespace tetris_bi {
     shapes_presets =
     {
       {
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     1, 0}
+        {static_cast<int>(field.get_width()) / 2 - 1, 0, 0},
+        {static_cast<int>(field.get_width()) / 2,     0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0},
+        {static_cast<int>(field.get_width()) / 2,     1, 0}
       }, // O-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 + 1, 1, 0}
+        {static_cast<int>(field.get_width()) / 2 - 2, 1, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0},
+        {static_cast<int>(field.get_width()) / 2,     1, 0},
+        {static_cast<int>(field.get_width()) / 2 + 1, 1, 0}
       }, // I-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2,     0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0}
+        {static_cast<int>(field.get_width()) / 2,     0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 2, 1, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0}
       }, // S-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     1, 0}
+        {static_cast<int>(field.get_width()) / 2 - 2, 0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0},
+        {static_cast<int>(field.get_width()) / 2,     1, 0}
       }, // Z-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2,     0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     1, 0}
+        {static_cast<int>(field.get_width()) / 2,     0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0},
+        {static_cast<int>(field.get_width()) / 2 - 2, 1, 0},
+        {static_cast<int>(field.get_width()) / 2,     1, 0}
       }, // L-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 1, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     1, 0}
+        {static_cast<int>(field.get_width()) / 2 - 2, 0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0},
+        {static_cast<int>(field.get_width()) / 2 - 2, 1, 0},
+        {static_cast<int>(field.get_width()) / 2,     1, 0}
       }, // J-figure
       {
-        {static_cast<int>(tetris_field.get_width()) / 2 - 2, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2,     0, 0},
-        {static_cast<int>(tetris_field.get_width()) / 2 - 1, 1, 0}
+        {static_cast<int>(field.get_width()) / 2 - 2, 0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 0, 0},
+        {static_cast<int>(field.get_width()) / 2,     0, 0},
+        {static_cast<int>(field.get_width()) / 2 - 1, 1, 0}
       } // T-figure
     };
     shapes_types_presets =
