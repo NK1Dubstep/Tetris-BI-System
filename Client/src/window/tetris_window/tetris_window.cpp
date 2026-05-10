@@ -86,6 +86,9 @@ namespace tetris_bi {
         case mfb_key::KB_KEY_W:
           game.rotateCCW();
           break;
+        case mfb_key::KB_KEY_SPACE:
+          game.drop();
+          break;
         default:
           break;
       }

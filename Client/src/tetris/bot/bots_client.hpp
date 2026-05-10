@@ -28,6 +28,10 @@ namespace tetris_bi {
     auto get_bots_number() {return bots_number;}
     auto &get_bots_mutex() {return bots_mutex;}
     const auto &get_bots() {return bots;}
+    uint32_t get_is_playing_tetris_number() {
+      uint32_t c = 0; for (auto &b : bots) c += b->game.get_state() == tetris_game::state::SESSION;
+      return c;
+    }
 
   private:
     int bots_number{0};
@@ -90,6 +94,8 @@ namespace tetris_bi {
     void ss_on_open() override;
     void ss_on_close() override;
     void ss_on_message(const nlohmann::json &data) override;
+
+    std::vector<uint32_t> ss_ids, ss_dwins, ss_dlosses, ss_max_streak;
     nlohmann::json ss_on_update_metrics() override;
   };
 }

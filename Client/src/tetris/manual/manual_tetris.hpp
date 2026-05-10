@@ -29,7 +29,7 @@ namespace tetris_bi {
 
   private:
     timer tim;  // mega timer
-    tetris_game game = tetris_game(0.5);
+    tetris_game game = tetris_game(0.08);
 
     std::atomic<std::optional<uint32_t>> id;
     tetris_game::state prev_state{tetris_game::state::IDLE};
@@ -37,6 +37,8 @@ namespace tetris_bi {
     void ss_on_open() override;
     void ss_on_close() override;
     void ss_on_message(const nlohmann::json &data) override;
+
+    std::vector<uint32_t> ss_ids, ss_dwins, ss_dlosses, ss_max_streak;
     nlohmann::json ss_on_update_metrics() override;
   };
 }

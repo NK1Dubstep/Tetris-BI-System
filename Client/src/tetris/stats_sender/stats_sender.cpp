@@ -112,22 +112,28 @@ namespace tetris_bi {
   void stats_sender::flush_update(timer::seconds time) {
     if (is_connected && time - last_send_time > send_time) {
       if (!is_playing_tetris_updates.empty()) {
-        nlohmann::json arr1 = nlohmann::json::array();
-        auto &vec = arr1.get_ref<nlohmann::json::array_t&>();
-        vec.reserve(is_playing_tetris_updates.size());
+        std::vector<int> ids_true, ids_false;
+  
+        ids_true.reserve(is_playing_tetris_updates.size());
+        ids_false.reserve(is_playing_tetris_updates.size());
 
         for (auto &[id, value] : is_playing_tetris_updates) {
-          arr1.push_back({{"id", id}, {"value", value}});
+          if (value)
+            ids_true.push_back(id);
+          else
+            ids_false.push_back(id);
         }
 
         // set_is_playing_tetris_batch
         send_json(nlohmann::json{
           {"type", "set_is_playing_tetris_batch"},
-          {"data", arr1}
-          });
+          {"ids_true", ids_true},
+          {"ids_false", ids_false},
+          }
+        );
         is_playing_tetris_updates.clear();
       }
-      nlohmann::json arr2 = ss_on_update_metrics();
+      nlohmann::json metr = ss_on_update_metrics();
 
       // increase_number_of_sessions
       send_json(nlohmann::json{
@@ -136,11 +142,10 @@ namespace tetris_bi {
         });
       played_sessions = 0;
 
-      // update_metrics
-      send_json(nlohmann::json{
-        {"type", "update_metrics"},
-        {"data", arr2}
-        });
+      // update_metrics_batch
+      nlohmann::json type{{"type", "update_metrics_batch"}};
+      metr.update(type);
+      send_json(metr);
 
       last_send_time = time;
     }

@@ -68,19 +68,25 @@ namespace tetris_bi {
   }
 
   nlohmann::json manual_tetris::ss_on_update_metrics() {
-    nlohmann::json arr = nlohmann::json::array();
+    ss_ids.reserve(1), ss_ids.clear();
+    ss_dwins.reserve(1), ss_dwins.clear();
+    ss_dlosses.reserve(1), ss_dlosses.clear();
+    ss_max_streak.reserve(1), ss_max_streak.clear();
 
-    if (id.load().has_value()) {
+    auto lid = id.load();
+    if (lid.has_value()) {
       tetris_game::metrics dmeta = game.get_meta_deltas();
 
-      arr.push_back({
-        {"id", id.load().value()},
-        {"wins", dmeta.wins},
-        {"losses", dmeta.losses},
-        {"max_streak", dmeta.max_streak}
-        });
+      if (dmeta.wins == 0 && dmeta.losses == 0) goto send;
+
+      ss_ids.push_back(lid.value());
+      ss_dwins.push_back(dmeta.wins);
+      ss_dlosses.push_back(dmeta.losses);
+      ss_max_streak.push_back(dmeta.max_streak);
     }
     game.save_meta_accum();
-    return arr;
+send:
+    return nlohmann::json{{"ids", ss_ids}, {"dwins", ss_dwins},
+      {"dlosses", ss_dlosses}, {"max_streak", ss_max_streak}};
   }
 }

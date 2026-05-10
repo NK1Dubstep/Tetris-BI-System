@@ -141,6 +141,9 @@ namespace tetris_bi {
           case mfb_key::KB_KEY_W:
             game.rotateCCW();
             break;
+          case mfb_key::KB_KEY_SPACE:
+            game.drop();
+            break;
           default:
             break;
         }
@@ -153,6 +156,9 @@ namespace tetris_bi {
         case mfb_key::KB_KEY_A:
           draw_index = (draw_index - 1 + bots_number) % bots_number;
           break;
+        case mfb_key::KB_KEY_1:
+          std::cout << std::format("is_playing_tetris now: {}/{}\n",
+            bsc->get_is_playing_tetris_number(), bots_number);
         default:
           break;
         }

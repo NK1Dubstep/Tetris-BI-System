@@ -26,9 +26,6 @@ DB_CONFIG = {
   "port": "5432"
 }
 
-is_playing_number = 0
-is_playing_tetris_number = 0
-
 connection_pool = pool.ThreadedConnectionPool(1, 20, **DB_CONFIG)
 
 
@@ -49,12 +46,10 @@ app = FastAPI()
 
 active_connections = []
 websocket_ids = {}
-is_playing_tetris_state = {}
+is_playing_tetris_state = set()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-  global is_playing_number, is_playing_tetris_number
-
   await websocket.accept()
   active_connections.append(websocket)
 
@@ -101,7 +96,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 existing_ids.extend(extra_ids)
 
               cur.executemany("""
-                UPDATE players SET is_playing = TRUE, is_playing_tetris = FALSE, last_login = NOW()
+                UPDATE players SET is_playing = TRUE, last_login = NOW()
                 WHERE id = %s
               """, [(bid,) for bid in existing_ids])
 
@@ -116,10 +111,8 @@ async def websocket_endpoint(websocket: WebSocket):
         }))
 
       if message["type"] == "set_is_playing_tetris_batch":
-        updates = message["data"]
-        for u in updates:
-          value = u["value"]
-          is_playing_tetris_state[u["id"]] = u["value"]
+        is_playing_tetris_state.update(message["ids_true"])
+        is_playing_tetris_state.difference_update(message["ids_false"])
 
       if message["type"] == "increase_number_of_sessions":
         with get_db() as conn:
@@ -130,20 +123,32 @@ async def websocket_endpoint(websocket: WebSocket):
               WHERE metric_name = 'total_sessions'
             """)
 
-      if message["type"] == "update_metrics":
-        data = message["data"]
-        params = [(item["wins"], item["losses"], item["max_streak"], item["id"]) for item in data]
+      if message["type"] == "update_metrics_batch":
+        params = list(zip(
+          message["ids"],
+          message["dwins"],
+          message["dlosses"],
+          message["max_streak"]
+        ))
         with get_db() as conn:
           with conn.cursor() as cur:
-            cur.executemany("""
-              UPDATE players
-              SET wins = wins + %s, losses = losses + %s, max_streak = GREATEST(max_streak, %s)
-              WHERE id = %s
-            """, params)
+            query = """
+              UPDATE players AS p
+              SET
+                wins = p.wins + v.w,
+                losses = p.losses + v.l,
+                max_streak = GREATEST(p.max_streak, v.s)
+              FROM (VALUES %s) AS v(id, w, l, s)
+              WHERE p.id = v.id
+            """
+            from psycopg2.extras import execute_values
+            execute_values(cur, query, params)
 
   except Exception as e:
     pass
+
   finally:
+
     if websocket_ids.get(websocket) is not None:
       with get_db() as conn:
         with conn.cursor() as cur:
@@ -153,46 +158,30 @@ async def websocket_endpoint(websocket: WebSocket):
               SET is_playing = FALSE
               WHERE id = %s
             """, (id,))
+
+      ids_to_remove = set(websocket_ids[websocket])
+      is_playing_tetris_state.difference_update(ids_to_remove)
       del websocket_ids[websocket]
 
     if websocket in active_connections:
       active_connections.remove(websocket)
 
 
-async def collect_ccu():
+async def collect_ccu(interval = 5):
   while True:
     try:
       with get_db() as conn:
         with conn.cursor() as cur:
-          cur.execute("SELECT COUNT(*) FROM players WHERE is_playing = TRUE AND is_playing_tetris = TRUE")
-          ccu_value = cur.fetchone()[0]
-          # dont work (problems with disconnect) ccu_value = is_playing_tetris_number
+          ccu_value = len(is_playing_tetris_state)
           cur.execute("INSERT INTO ccu (ts, value) VALUES (NOW(), %s)", (ccu_value,))
     except Exception as e:
       print(f"CCU error: {e}")
-
-    await asyncio.sleep(5)
-
-
-async def flush_is_playing_tetris_state():
-  while True:
-    await asyncio.sleep(5)
-    if not is_playing_tetris_state:
-      continue
-    snapshot = is_playing_tetris_state.copy()
-    is_playing_tetris_state.clear()
-
-    with get_db() as conn:
-      with conn.cursor() as cur:
-        cur.executemany("""
-          UPDATE players SET is_playing_tetris = %s WHERE id = %s
-        """, [(v, k) for k, v in snapshot.items()])
+    await asyncio.sleep(interval)
 
 
 @app.on_event("startup")
 async def startup_event():
-  asyncio.create_task(collect_ccu())
-  asyncio.create_task(flush_is_playing_tetris_state())
+  asyncio.create_task(collect_ccu(5))
 
 
 @app.get("/tetris_bi/get_ccu_data")
@@ -247,18 +236,21 @@ def wins_losses():
 def rolling_retention_seconds(bucket_seconds: int = 20, num_buckets: int = 10):
   with get_db() as conn:
     with conn.cursor() as cur:
-      result = []
-      cur.execute("SELECT COUNT(*) FROM players")
-      total = cur.fetchone()[0]
-      if total == 0:
+      cur.execute("""
+        SELECT
+          COUNT(*),
+          ARRAY_AGG(EXTRACT(EPOCH FROM (last_login - with_us_since)))
+        FROM players
+      """)
+      total, array_agg = cur.fetchone()
+
+      if not total or array_agg is None:
         return JSONResponse(content=[])
+
+      result = []
       for k in range(num_buckets):
-        threshold_seconds = k * bucket_seconds
-        cur.execute("""
-          SELECT COUNT(*) FROM players
-          WHERE EXTRACT(EPOCH FROM (last_login - with_us_since)) >= %s
-        """, (threshold_seconds,))
-        active = cur.fetchone()[0]
+        threshold = k * bucket_seconds
+        active = sum(1 for lt in array_agg if lt is not None and lt >= threshold)
         pct = round(100.0 * active / total, 2)
         result.append({"bucket": k, "retention_pct": pct})
   return JSONResponse(content=result)

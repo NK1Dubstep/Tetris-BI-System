@@ -30,6 +30,9 @@ namespace tetris_bi {
     bots_number(clever_bot_number + dummy_bot_number)
   {
     int n = clever_bot_number + dummy_bot_number;
+
+    std::lock_guard guard(bots_mutex);
+
     for (int i = 0; i < clever_bot_number; i++) {
       bots[i] = std::make_unique<bot_200iq>();
     }
@@ -46,9 +49,9 @@ namespace tetris_bi {
   }
 
   void bots_client::update() {
-    // if (!register_finished) {
-    //   return;
-    // }
+    if (get_connection_status() && !register_finished) {
+      return;
+    }
     std::lock_guard guard(bots_mutex);
 
     tim.update();
@@ -106,6 +109,7 @@ namespace tetris_bi {
 
   void bots_client::ss_on_close() {
     register_finished = false;
+    std::lock_guard guard(bots_mutex);
     for (auto &b : bots) b->reset();
   }
 
@@ -120,27 +124,30 @@ namespace tetris_bi {
         bots[i]->id = x[i];
       }
       register_finished = true;
+      std::cout << "Bots client: register finished\n";
     }
   }
 
   nlohmann::json bots_client::ss_on_update_metrics() {
-    nlohmann::json arr = nlohmann::json::array();
-    auto &vec = arr.get_ref<nlohmann::json::array_t&>();
-    vec.reserve(bots.size());
+    ss_ids.reserve(bots.size()), ss_ids.clear();
+    ss_dwins.reserve(bots.size()), ss_dwins.clear();
+    ss_dlosses.reserve(bots.size()), ss_dlosses.clear();
+    ss_max_streak.reserve(bots.size()), ss_max_streak.clear();
 
     for (auto &bot : bots) {
       if (bot->id.has_value()) {
         tetris_game::metrics dmeta = bot->game.get_meta_deltas();
 
-        arr.push_back({
-          {"id", bot->id.value()},
-          {"wins", dmeta.wins},
-          {"losses", dmeta.losses},
-          {"max_streak", dmeta.max_streak}
-          });
+        if (dmeta.wins == 0 && dmeta.losses == 0) continue;
+
+        ss_ids.push_back(bot->id.value());
+        ss_dwins.push_back(dmeta.wins);
+        ss_dlosses.push_back(dmeta.losses);
+        ss_max_streak.push_back(dmeta.max_streak);
       }
       bot->game.save_meta_accum();
     }
-    return arr;
+    return nlohmann::json{{"ids", ss_ids}, {"dwins", ss_dwins},
+      {"dlosses", ss_dlosses}, {"max_streak", ss_max_streak}};
   }
 }
