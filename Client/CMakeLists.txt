@@ -72,6 +72,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     -Wall
     -Wextra
     -Wpedantic
+    -mrdrnd
   )
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(${TARGET_NAME} PRIVATE

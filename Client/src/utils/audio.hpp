@@ -61,7 +61,7 @@ namespace tetris_bi {
       if (!is_ok) return;
 
       ma_sound *sound = new ma_sound;
-      if (ma_sound_init_from_file(&engine, path.c_str(), 0, NULL, NULL, sound) != MA_SUCCESS) {
+      if (ma_sound_init_from_file(&engine, path.c_str(), MA_SOUND_FLAG_STREAM, NULL, NULL, sound) != MA_SUCCESS) {
         delete sound;
         return;
       }
