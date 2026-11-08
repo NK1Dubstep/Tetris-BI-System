@@ -3,5 +3,7 @@ CREATE TABLE players (
     with_us_since TIMESTAMP NOT NULL DEFAULT NOW(),
     last_login TIMESTAMP NOT NULL DEFAULT NOW(),
     is_playing BOOLEAN NOT NULL DEFAULT FALSE,
-    is_playing_tetris BOOLEAN NOT NULL DEFAULT FALSE
+    wins INTEGER DEFAULT 0,
+    losses INTEGER DEFAULT 0,
+    max_streak INTEGER DEFAULT 0
 );
