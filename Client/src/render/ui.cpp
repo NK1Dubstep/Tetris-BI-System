@@ -56,7 +56,7 @@ namespace tetris_bi {
     }
 
     if (is_pressed) {
-      audio_player::get().play("music/Mecha3Perc7.wav");
+      audio_player::get().play("music/button_click.mp3");
       f();
     }
   }

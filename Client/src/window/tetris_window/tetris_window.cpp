@@ -231,17 +231,17 @@ namespace tetris_bi {
       render_tetris(target_tetris.get_tetris_field());
       auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
 
-      auto str1 = std::format(R"(Tetris BI System, FPS: {})", fps_tim.fps);
+      auto str1 = std::format(R"(FPS: {:.2f})", fps_tim.fps);
       auto str2 = std::format(R"(Bot index: {})", draw_index);
       auto str3 = std::format(R"(Total bots: {})", bsc->get_bots_number());
       auto str4 = std::format(
-        R"(Tetris prog score               : {}
-Tetris prog total_lines         : {},
-Tetris prog figure_passed       : {},
-Tetris prog figure_passed_lvl   : {},
-Tetris diff level_number        : {},
-Tetris diff figure_to_win       : {},
-Tetris diff lose_line:          : {},
+        R"(prog score               : {}
+prog total_lines         : {},
+prog figure_passed       : {},
+prog figure_passed_lvl   : {},
+diff level_number        : {},
+diff figure_to_win       : {},
+diff lose_line           : {},
         )", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
             diff.level_number, diff.figure_to_win, diff.lose_line);
             auto str5 = std::format("Connected: {}", bsc->get_connection_status() ? "true" : "false");
@@ -258,21 +258,21 @@ Tetris diff lose_line:          : {},
 
       auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
 
-      auto str1 = std::format(R"(Tetris BI System, FPS: {})", fps_tim.fps);
+      auto str1 = std::format(R"(FPS: {:.2f})", fps_tim.fps);
       auto str4 = std::format(
-        R"(Tetris prog score               : {}
-Tetris prog total_lines         : {},
-Tetris prog figure_passed       : {},
-Tetris prog figure_passed_lvl   : {},
-Tetris diff level_number        : {},
-Tetris diff figure_to_win       : {},
-Tetris diff lose_line:          : {},
+        R"(prog score               : {}
+prog total_lines         : {},
+prog figure_passed       : {},
+prog figure_passed_lvl   : {},
+diff level_number        : {},
+diff figure_to_win       : {},
+diff lose_line           : {},
         )", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
             diff.level_number, diff.figure_to_win, diff.lose_line);
             auto str5 = std::format("Connected: {}", mt->get_connection_status() ? "true" : "false");
 
       draw_string(str1, 0, 0, 0x834d18);
-      draw_string("LeftCtrl+S start session LeftCtrl+E end session", 0, 16, 0xFFFFFF);
+      draw_string("Start session: Ctrl+S, end session: Ctrl+E", 0, 16, 0xFFFFFF);
 
       draw_string(str5, 0, 48, mt->get_connection_status() ? 0x00FF00 : 0xFF0000);
       draw_string(str4, 0, 64, 0x666666);
