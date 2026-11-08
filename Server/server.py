@@ -17,13 +17,14 @@ from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
 
 import random
+import os
 
 DB_CONFIG = {
-  "dbname": "tetris_bi",
-  "user": "postgres",
-  "password": "123@",
-  "host": "127.0.0.1",
-  "port": "5432"
+  "dbname": os.getenv("TETRIS_DB_NAME", "tetris_bi"),
+  "user": os.getenv("TETRIS_DB_USER", "postgres"),
+  "password": os.getenv("TETRIS_DB_PASSWORD", ""),
+  "host": os.getenv("TETRIS_DB_HOST", "127.0.0.1"),
+  "port": os.getenv("TETRIS_DB_PORT", "5432"),
 }
 
 connection_pool = pool.ThreadedConnectionPool(1, 20, **DB_CONFIG)
