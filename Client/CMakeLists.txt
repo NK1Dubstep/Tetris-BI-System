@@ -12,8 +12,6 @@ set(SOURCES
   src/render/ui.cpp
   src/window/window.cpp
   src/window/tetris_window/tetris_window.cpp
-  src/window/super_tetris_window/super_tetris_window.cpp
-  src/window/super_puper_tetris_window/super_puper_tetris_window.cpp
   src/tetris/tetris.cpp
   src/tetris/tetris_field.cpp
   src/tetris/tetris_shapes.cpp

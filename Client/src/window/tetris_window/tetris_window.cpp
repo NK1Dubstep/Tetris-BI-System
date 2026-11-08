@@ -18,23 +18,83 @@
 namespace tetris_bi {
 
   tetris_window::tetris_window() :
-    window("Nk1 av1 super tertis", 800, 800),
+    window("Tetris BI System Client", 800, 800),
     render(800, 800)
   {
-    render::draw_rectangle(0, 0, 100, 100, 0x834d18);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
-    stats_sender::connect(2);
+
+    /* UI main menu */
+    {
+      auto button1 = std::make_unique<button>(20, 20, "Play manually", MOUSE_BTN_1,
+        [&]() {
+          sc = scene::MANUAL_TETRIS;
+          mt = std::make_unique<manual_tetris>();
+        }
+      );
+      main_menu.add(std::move(button1));
+      auto button2 = std::make_unique<button>(20, 60, "Run bot simulation", MOUSE_BTN_1,
+        [&]() {
+          sc = scene::BOTS_CLIENT_CHOICE;
+        }
+      );
+      main_menu.add(std::move(button2));
+    }
+
+    /* UI bots_client_choice */
+    {
+      auto slider1 = std::make_unique<slider<uint32_t>>(20, 20,
+        1, 100000, 200,
+        500, MOUSE_BTN_1, "dummy bot number");
+      slider_dummy = slider1.get();
+      bots_client_choice.add(std::move(slider1));
+
+      auto slider2 = std::make_unique<slider<uint32_t>>(20, 60,
+        1, 100, 4,
+        200, MOUSE_BTN_1, "clever bot number");
+      slider_clever = slider2.get();
+      bots_client_choice.add(std::move(slider2));
+
+      auto button1 = std::make_unique<button>(20, 100, "Go", MOUSE_BTN_1,
+        [&]() {
+          sc = scene::BOTS_CLIENT;
+          bsc = std::make_unique<bots_client>(slider_clever->get_value(), slider_dummy->get_value());
+        }
+      );
+      bots_client_choice.add(std::move(button1));
+
+      auto button2 = std::make_unique<button>(60, 100, "Back", MOUSE_BTN_1,
+        [&]() {
+          sc = scene::MAIN_MENU;
+        }
+      );
+      bots_client_choice.add(std::move(button2));
+
+      bots_client_choice.set_all_is_active_element(false);
+    }
+
+    /* Terminate */
+    {
+      auto button1 = std::make_unique<button>(20, 300, "Terminate", MOUSE_BTN_1,
+        [&]() {
+          sc = scene::MAIN_MENU;
+          bsc = 0;
+          mt = 0;
+          draw_index = 0;
+        }
+      );
+      terminate.add(std::move(button1));
+      terminate.set_all_is_active_element(false);
+    }
   }
 
   void tetris_window::my_active(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] bool is_active
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_active) is_active: {}\n", is_active);
   }
 
   void tetris_window::my_resize(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] int w,
     [[maybe_unused]] int h
   ) {
@@ -42,175 +102,181 @@ namespace tetris_bi {
 
     render::resize(w, h);
     render::draw_rectangle(0, 0, 100, 100, 0x834d18);
-    render::draw_string("ABOBA", 0, 0, 0);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
-    // std::cout << std::format("(MiniFB callback called, my_resize) Was resized to: {} {}\n", w, h);
   }
 
   bool tetris_window::my_close(
-    mfb_window *
+    mfb_window*
   ) {
-    // std::cout << "(MiniFB callback called, my_close) Close trigger\n";
     return true;
   }
 
   void tetris_window::my_keyboard(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] mfb_key key,
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_keyboard), Press flag: {}\n", is_pressed);
-
     if (is_pressed) {
-      if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_S) {
-        game.start_session();
-        return;
-      }
-
-      if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_E) {
-        game.end_session();
-        return;
-      }
-
-      switch (key) {
-        case mfb_key::KB_KEY_A:
-          game.move_direction(-1);
-          break;
+      if (sc == scene::MANUAL_TETRIS) {
+        auto &game = mt->get_game();
+        if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_S) {
+          game.start_session();
+          return;
+        }
+        if (mod & mfb_key_mod::KB_MOD_CONTROL && key == mfb_key::KB_KEY_E) {
+          game.end_session();
+          return;
+        }
+        switch (key) {
+          case mfb_key::KB_KEY_A:
+            game.move_direction(-1);
+            break;
+          case mfb_key::KB_KEY_D:
+            game.move_direction(1);
+            break;
+          case mfb_key::KB_KEY_S:
+            game.rotateCW();
+            break;
+          case mfb_key::KB_KEY_W:
+            game.rotateCCW();
+            break;
+          case mfb_key::KB_KEY_SPACE:
+            game.drop();
+            break;
+          default:
+            break;
+        }
+      } else if (sc == scene::BOTS_CLIENT) {
+        auto bots_number = bsc->get_bots_number();
+        switch (key) {
         case mfb_key::KB_KEY_D:
-          game.move_direction(1);
+          draw_index = (draw_index + 1) % bots_number;
           break;
-        case mfb_key::KB_KEY_S:
-          game.rotateCW();
+        case mfb_key::KB_KEY_A:
+          draw_index = (draw_index - 1 + bots_number) % bots_number;
           break;
-        case mfb_key::KB_KEY_W:
-          game.rotateCCW();
-          break;
-        case mfb_key::KB_KEY_SPACE:
-          game.drop();
-          break;
+        case mfb_key::KB_KEY_1:
+          std::cout << std::format("is_playing_tetris now: {}/{}\n",
+            bsc->get_is_playing_tetris_number(), bots_number);
         default:
           break;
+        }
       }
     }
   }
 
   void tetris_window::my_char_input(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] uint32_t char_code
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_char_input) char: {}\n", static_cast<char>(char_code));
   }
 
   void tetris_window::my_mouse_button(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] mfb_mouse_button button,
     [[maybe_unused]] mfb_key_mod mod,
     [[maybe_unused]] bool is_pressed
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_mouse_button)\n");
   }
 
   void tetris_window::my_mouse_move(
-    mfb_window *,
-    [[maybe_unused]] int x,
-    [[maybe_unused]] int y
+    mfb_window*,
+    [[maybe_unused]] int mx,
+    [[maybe_unused]] int my
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_mouse_move) Mouse moved to: {} {}\n", x, y);
   }
 
   void tetris_window::my_mouse_scroll(
-    mfb_window *,
+    mfb_window*,
     [[maybe_unused]] mfb_key_mod mod,
-    [[maybe_unused]] float dx,
-    [[maybe_unused]] float dy
+    [[maybe_unused]] float mdx,
+    [[maybe_unused]] float mdy
   ) {
-    // std::cout << std::format("(MiniFB callback called, my_mouse_scroll) dx: {}, dy: {}\n", dx, dy);
   }
 
   void tetris_window::my_frame() {
-    tim.update();
+    fps_tim.update();
     beautiful_bg_273();
 
-    auto dt = tim.delta_time_p;
-    auto t = tim.time_p;
+    update_keyboard(win);
+    update_mbuttons(win);
+    update_mpos(win, dpi_x, dpi_y);
 
-    game.update(dt);
+    input_state is {
+      .x = get_x(),
+      .y = get_y(),
+      .dx = get_dx(),
+      .dy = get_dy(),
+      .pressed_keys = get_pressed_keys().data(),
+      .pressed_keys_instant = get_pressed_keys_instant().data()
+    };
+    main_menu.update(is);
+    bots_client_choice.update(is);
+    terminate.update(is);
 
-    tetris_game::state st{game.get_state()};
+    main_menu.draw(static_cast<render &>(*this));
+    bots_client_choice.draw(static_cast<render &>(*this));
+    terminate.draw(static_cast<render &>(*this));
 
-    if (st == tetris_game::state::IDLE) {
-      if (prev_state == tetris_game::state::SESSION) {
-        if (id.load().has_value()) {
-          set_is_playing_tetris_update(id.load().value(), false);
-        }
-        increase_sessions();
-      }
-      prev_state = tetris_game::state::IDLE;
-    } else if (st == tetris_game::state::SESSION) {
-      if (prev_state == tetris_game::state::IDLE) {
-        if (id.load().has_value()) {
-          set_is_playing_tetris_update(id.load().value(), true);
-        }
-      }
-      prev_state = tetris_game::state::SESSION;
+    main_menu.set_all_is_active_element(sc == scene::MAIN_MENU);
+    bots_client_choice.set_all_is_active_element(sc == scene::BOTS_CLIENT_CHOICE);
+    terminate.set_all_is_active_element(sc == scene::MANUAL_TETRIS || sc == scene::BOTS_CLIENT);
+    
+    if (sc == scene::BOTS_CLIENT) {
+      bsc->update();
+      std::lock_guard guard(bsc->get_bots_mutex());
+      const auto &target_tetris = bsc->get_bots()[draw_index]->game;
+
+      render_tetris(target_tetris.get_tetris_field());
+      auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
+
+      auto str1 = std::format(R"(Tetris BI System, FPS: {})", fps_tim.fps);
+      auto str2 = std::format(R"(Bot index: {})", draw_index);
+      auto str3 = std::format(R"(Total bots: {})", bsc->get_bots_number());
+      auto str4 = std::format(
+        R"(Tetris prog score               : {}
+Tetris prog total_lines         : {},
+Tetris prog figure_passed       : {},
+Tetris prog figure_passed_lvl   : {},
+Tetris diff level_number        : {},
+Tetris diff figure_to_win       : {},
+Tetris diff lose_line:          : {},
+        )", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
+            diff.level_number, diff.figure_to_win, diff.lose_line);
+            auto str5 = std::format("Connected: {}", bsc->get_connection_status() ? "true" : "false");
+
+      draw_string(str1, 0, 0, 0x834d18);
+      draw_string(str3, 0, 16, 0x006600);
+      draw_string(str2, 0, 32, 0x660066);
+      draw_string(str5, 0, 48, bsc->get_connection_status() ? 0x00FF00 : 0xFF0000);
+      draw_string(str4, 0, 64, 0x666666);
+    } else if (sc == scene::MANUAL_TETRIS) {
+      mt->update();
+      const auto &target_tetris = mt->get_game();
+      render_tetris(target_tetris.get_tetris_field());
+
+      auto prog = target_tetris.get_prog(); auto diff = target_tetris.get_diff();
+
+      auto str1 = std::format(R"(Tetris BI System, FPS: {})", fps_tim.fps);
+      auto str4 = std::format(
+        R"(Tetris prog score               : {}
+Tetris prog total_lines         : {},
+Tetris prog figure_passed       : {},
+Tetris prog figure_passed_lvl   : {},
+Tetris diff level_number        : {},
+Tetris diff figure_to_win       : {},
+Tetris diff lose_line:          : {},
+        )", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
+            diff.level_number, diff.figure_to_win, diff.lose_line);
+            auto str5 = std::format("Connected: {}", mt->get_connection_status() ? "true" : "false");
+
+      draw_string(str1, 0, 0, 0x834d18);
+      draw_string("LeftCtrl+S start session LeftCtrl+E end session", 0, 16, 0xFFFFFF);
+
+      draw_string(str5, 0, 48, mt->get_connection_status() ? 0x00FF00 : 0xFF0000);
+      draw_string(str4, 0, 64, 0x666666);
     }
-
-    stats_sender::flush_update(t);
-
-    render_tetris(game.get_tetris_field());
-
-    auto prog = game.get_prog(); auto diff = game.get_diff();
-
-    auto str1 = std::format(R"(Nk1 av1 super tertis, FPS: {})", tim.fps);
-    auto str4 = std::format(
-      R"(Tertis prog score: {}
-Tertis prog total_lines: {},
-Tertis prog figure_passed: {},
-Tertis prog figure_passed_lvl: {},
-Tertis diff level_number: {},
-Tertis diff figure_to_win: {},
-Tertis diff lose_line: {},
-)", prog.score, prog.total_lines, prog.figure_passed, prog.figure_passed_lvl,
-    diff.level_number, diff.figure_to_win, diff.lose_line);
-
-    draw_string(str1, 0, 0, 0x834d18);
-    draw_string(str4, 0, 48, 0x666666);
     mfb_update_ex(win, render::get_buffer().data(), window::width, window::height);
   }
-
-  void tetris_window::ss_on_open() {
-    register_batch(1);
-  }
-
-  void tetris_window::ss_on_close() {
-    id = std::nullopt;
-  }
-
-  void tetris_window::ss_on_message(const nlohmann::json &data) {
-    std::string message = data["message"];
-
-    if (message == "register_batch") {
-      auto x = data["ids"];
-      id = x[0];
-    }
-  }
-
-  nlohmann::json tetris_window::ss_on_update_metrics() {
-    nlohmann::json arr = nlohmann::json::array();
-
-    if (id.load().has_value()) {
-      tetris_game::metrics dmeta = game.get_meta_deltas();
-
-      arr.push_back({
-        {"id", id.load().value()},
-        {"wins", dmeta.wins},
-        {"losses", dmeta.losses},
-        {"max_streak", dmeta.max_streak}
-        });
-    }
-    game.save_meta_accum();
-    return arr;
-  }
-
 }
