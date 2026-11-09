@@ -9,22 +9,37 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Tetris BI - Dashboard</title>
+  <title>Tetris BI System - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .charts
+    {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .chart
+    {
+      position: relative;
+      height: 60vh;
+    }
+  </style>
 </head>
 <body>
-  <h1>Tetris BI - Dashboard</h1>
+  <h1>Tetris BI System - Dashboard</h1>
   <div id="stats">
-    <p>Total points: <span id="total_points">0</span></p>
-    <p>Last CCU: <span id="last_ccu">0</span></p>
-    <p>Total sessions: <span id="total_sessions">0</span></p>
-    <p>Wins: <span id="wins">0</span></p>
-    <p>Losses: <span id="losses">0</span></p>
+    <span>Total points: <span id="total_points">0</span></span>&emsp;|&emsp;
+    <span>Last CCU: <span id="last_ccu">0</span></span>&emsp;|&emsp;
+    <span>Total sessions: <span id="total_sessions">0</span></span>&emsp;|&emsp;
+    <span>Levels cleared: <span id="wins">0</span></span>&emsp;|&emsp;
+    <span>Games lost: <span id="losses">0</span></span>
   </div>
-  <canvas id="ccuChart" width="800" height="400"></canvas>
-  <canvas id="retentionChart" width="800" height="400"></canvas>
-  <canvas id="streaksChart" width="600" height="400"></canvas>
-
+  <br>
+  <div class="charts">
+    <div class="chart"><canvas id="ccuChart"></canvas></div>
+    <div class="chart"><canvas id="retentionChart"></canvas></div>
+    <div class="chart"><canvas id="streaksChart"></canvas></div>
+  </div>
   <script>
     let chart;
 
@@ -40,7 +55,7 @@
         }
 
         if (chart) {
-          chart.data.labels = data.xs;
+          chart.data.labels = data.xs.map(t => t.slice(11, 19));
           chart.data.datasets[0].data = data.ys;
           chart.update();
         } else {
@@ -48,7 +63,7 @@
           chart = new Chart(ctx, {
             type: 'line',
             data: {
-              labels: data.xs,
+              labels: data.xs.map(t => t.slice(11, 19)),
               datasets: [{
                 label: 'CCU (Concurrent Users)',
                 data: data.ys,
@@ -60,7 +75,7 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: true,
+              maintainAspectRatio: false,
               plugins: {
                 legend: {
                   position: 'top',
@@ -155,6 +170,7 @@
               }]
             },
             options: {
+              maintainAspectRatio: false,
               scales: {
                 y: {
                   beginAtZero: true,
@@ -162,7 +178,7 @@
                   title: { display: true, text: 'Retention (%)' }
                 },
                 x: {
-                  title: { display: true, text: 'Номер интервала' }
+                  title: { display: true, text: `Interval index (1 interval = ${bucketSeconds} seconds)` }
                 }
               }
             }
@@ -180,7 +196,7 @@
         const response = await fetch('/tetris_bi/streaks_stats');
         const data = await response.json();
 
-        const labels = ['Максимальная', 'Медианная', 'Средняя'];
+        const labels = ['Max', 'Median', 'Avg'];
         const values = [data.max, data.median, data.avg];
 
         if (streaksChart) {
@@ -193,7 +209,7 @@
             data: {
               labels: labels,
               datasets: [{
-                label: 'Количество побед подряд',
+                label: 'Number of wins in a row',
                 data: values,
                 backgroundColor: ['#e74c3c', '#f39c12', '#2ecc71'],
                 borderColor: '#34495e',
@@ -202,14 +218,14 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: true,
+              maintainAspectRatio: false,
               scales: {
                 y: {
                   beginAtZero: true,
-                  title: { display: true, text: 'Побед в серии' }
+                  title: { display: true, text: 'Wins in a row' }
                 },
                 x: {
-                  title: { display: true, text: 'Тип серии' }
+                  title: { display: true, text: 'Type' }
                 }
               }
             }
