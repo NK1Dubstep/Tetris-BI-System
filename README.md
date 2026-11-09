@@ -10,8 +10,6 @@
 
 ## Screenshots
 
-<img src="Images/menu.png" alt="Main menu" style="width: 50%;">
-<img src="Images/bots_client_menu.png" alt="Bots client menu" style="width: 50%;">
 ![bots_client](Images/bots_client.png) \
 ![dashboard](Images/dashboard.png)
 
